@@ -60,6 +60,7 @@ except ImportError:
 class Oven (threading.Thread):
     STATE_IDLE = "IDLE"
     STATE_RUNNING = "RUNNING"
+    STATE_TUNING = "TUNING"
 
     def __init__(self, simulate=False, time_step=config.sensor_time_wait):
         threading.Thread.__init__(self) ##I don't have a strong idea of how threading works in python. Leave intact
@@ -84,9 +85,11 @@ class Oven (threading.Thread):
         self.runtime = 0
         self.totaltime = 0
         self.target = 0
+        self.heating = False
+        self.heatpwm = 0;
         self.door = self.get_door_state()  ##Should be a way to disable the door sensors
         self.state = Oven.STATE_IDLE
-        self.set_heat(False)
+        self.set_heat(0)
         self.set_cool(False) ##...and cooling
         self.set_air(False) ##...and... air? Not sure what this is for
         self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp) ##PID values need to be readable or writable
@@ -106,14 +109,78 @@ class Oven (threading.Thread):
         
         ##Right here is where I'd add a PID tuning algorithm. Create function to start tuning, and add a if.state=tuning to run algo
         ##Also add another Oven.state for "tuning"
+    def run_tuning(self, temp_target, n_cycles):
+        log.info("Running auto-tune algorithm. Target: %.0f deg C, Cycles: %", temp_target, n_cycles);
+        self.state = Oven.STATE_TUNING
+        self.start_time = datetime.datetime.now()
+        self.heating = 0
+        self.heatpwm = 0.5       #Marlin starts at 50%. What happens if this isn't enough to hit the target?
+        self.bias = self.heatpwm    #Thinking these shouldn't be class variables? Need to brush up on python and namespace
+        self.d = self.heatpwm
+        self.target = temp_target
+        self.maxtemp = -10000
+        self.mintemp = 10000
+        self.t1 = datetime.datetime.now()   #t1 is when the temp goes over target
+        self.t2 = self.t1                   #t2 is when it goes under
+        log.info("Starting")
 
     def run(self):
         temperature_count = 0
         last_temp = 0
         pid = 0
+        now = datetime.datetime.now()
         while True:
             self.door = self.get_door_state() ##What is this variable for?
-
+            
+            if self.state == Oven.STATE_TUNING:
+                #This algorithm is based off that used by Marlin (3-D printer control).
+                #It essentially measures the overshoot and undershoot when turning the heat on and off,
+                #Then applies some guideline formulas to come up with the K values
+                temp = self.temp_sensor.temperature
+                self.maxtemp = max(self.maxtemp, temp)
+                self.mintemp = min(self.mintemp, temp)
+                if (self.heating and temp > self.target):
+                    #These events occur once we swing over the temperature target
+                    if((now - self.t2).total_seconds > 5):  #debounce: prevent noise from triggering false transition
+                                                            #This might need to be longer for large systems
+                            self.heating = false
+                            self.heatpwm = (self.bias - self.d)/2
+                            self.t1 = now
+                            self.t_high = (self.t1-self.t2).total_seconds
+                            self.maxtemp = temp
+                            
+                if (self.heating == false and temp < self.target):
+                    #This occurs when we swing below the target
+                    if((now - self.t1).total_seconds > 5): #same debounce
+                        self.heating = true
+                        t2 = now
+                        self.t_low = (self.t2-self.t1).total_seconds
+                        if (self.cycles > 0):
+                            self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
+                            self.bias = sorted([20, self.bias, 80])[1]
+                            self.d = self.bias if self.bias < 50 else 99 - self.bias       ##not sure what all this does
+                            log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.min, self.max)
+                            if (self.cycles > 2):
+                                #Magic formulas:
+                                Ku = (4.0 * self.d)/ (math.Pi * (self.max - self.min) / 2)
+                                Tu = (t_low + t_high)
+                                log.info("Ku: %, Tu: %", Ku, Tu)
+                                Kp = 0.6 * Ku
+                                Ki = 2*Kp/Tu
+                                Kd = Kp * Tu/8
+                                log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
+                                
+                            self.heatpwm = (self.bias + self.d)/2
+                            self.cycles++
+                            self.min = self.target
+                            
+                #TODO: End conditions
+                                
+                            
+                            
+                
+            
+            ## I might rewrite a lot of this
             if self.state == Oven.STATE_RUNNING:
                 if self.simulate: ##Probably just won't touch the simulation
                     self.runtime += 0.5
