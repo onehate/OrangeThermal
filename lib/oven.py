@@ -1,3 +1,5 @@
+##Comments - PT 1/23/19
+
 import threading
 import time
 import random
@@ -6,6 +8,8 @@ import logging
 import json
 
 import config
+
+##This stuff gets done on import. Probably okay, but consider moving to init statement
 
 log = logging.getLogger(__name__)
 
@@ -58,12 +62,12 @@ class Oven (threading.Thread):
     STATE_RUNNING = "RUNNING"
 
     def __init__(self, simulate=False, time_step=config.sensor_time_wait):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self) ##I don't have a strong idea of how threading works in python. Leave intact
         self.daemon = True
         self.simulate = simulate
         self.time_step = time_step
         self.reset()
-        if simulate:
+        if simulate:  ##I don't see a strong use case for simulation, but leave it in for if this gets pulled into main code
             self.temp_sensor = TempSensorSimulate(self, 0.5, self.time_step)
         if sensor_available:
             self.temp_sensor = TempSensorReal(self.time_step)
@@ -80,14 +84,16 @@ class Oven (threading.Thread):
         self.runtime = 0
         self.totaltime = 0
         self.target = 0
-        self.door = self.get_door_state()
+        self.door = self.get_door_state()  ##Should be a way to disable the door sensors
         self.state = Oven.STATE_IDLE
         self.set_heat(False)
-        self.set_cool(False)
-        self.set_air(False)
-        self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
+        self.set_cool(False) ##...and cooling
+        self.set_air(False) ##...and... air? Not sure what this is for
+        self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp) ##PID values need to be readable or writable
+                                                                                  ##store in config? Or elsewhere
 
     def run_profile(self, profile):
+        ##Looks good
         log.info("Running profile %s" % profile.name)
         self.profile = profile
         self.totaltime = profile.get_duration()
@@ -97,32 +103,40 @@ class Oven (threading.Thread):
 
     def abort_run(self):
         self.reset()
+        
+        ##Right here is where I'd add a PID tuning algorithm. Create function to start tuning, and add a if.state=tuning to run algo
+        ##Also add another Oven.state for "tuning"
 
     def run(self):
         temperature_count = 0
         last_temp = 0
         pid = 0
         while True:
-            self.door = self.get_door_state()
+            self.door = self.get_door_state() ##What is this variable for?
 
             if self.state == Oven.STATE_RUNNING:
-                if self.simulate:
+                if self.simulate: ##Probably just won't touch the simulation
                     self.runtime += 0.5
                 else:
                     runtime_delta = datetime.datetime.now() - self.start_time
                     self.runtime = runtime_delta.total_seconds()
-                log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
+                log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % 
+                         (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, 
+                          self.totaltime))  ##Consider being able to display deg F
                 self.target = self.profile.get_target_temperature(self.runtime)
                 pid = self.pid.compute(self.target, self.temp_sensor.temperature)
+                
+                ##Should we store the current run time in case of power failure?
 
                 log.info("pid: %.3f" % pid)
 
-                self.set_cool(pid <= -1)
+                self.set_cool(pid <= -1) ##cooling might not be enabled
                 if(pid > 0):
+                    ##keep this... but double check that it won't cause false failure in large systems
                     # The temp should be changing with the heat on
                     # Count the number of time_steps encountered with no change and the heat on
                     if last_temp == self.temp_sensor.temperature:
-                        temperature_count += 1
+                        temperature_count += 1 ##rename this variable
                     else:
                         temperature_count = 0
                     # If the heat is on and nothing is changing, reset
@@ -146,6 +160,7 @@ class Oven (threading.Thread):
                 #    self.set_heat(False)
                 #    self.set_cool(self.temp_sensor.temperature > self.target)
 
+                ##These should be configurable... assuming "air" is used. Still not sure what it does
                 if self.temp_sensor.temperature > 200:
                     self.set_air(False)
                 elif self.temp_sensor.temperature < 180:
@@ -154,13 +169,16 @@ class Oven (threading.Thread):
                 if self.runtime >= self.totaltime:
                     self.reset()
 
-            
+            ##Don't like that this sleep is here
             if pid > 0:
                 time.sleep(self.time_step * (1 - pid))
             else:
                 time.sleep(self.time_step)
 
     def set_heat(self, value):
+        ##Not a fan of bit-banging in the same thread as the control algorithm
+        ##for one thing, it forces the pwm period to be the same as the control cycle time
+        ##Move this to a different thread or use hardware PWM
         if value > 0:
             self.heat = 1.0
             if gpio_available:
@@ -181,6 +199,7 @@ class Oven (threading.Thread):
                  GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
+        ##This should also be in the other thread. Add option to not have cooling
         if value:
             self.cool = 1.0
             if gpio_available:
@@ -191,6 +210,7 @@ class Oven (threading.Thread):
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
+        ##Ditto
         if value:
             self.air = 1.0
             if gpio_available:
@@ -215,12 +235,13 @@ class Oven (threading.Thread):
         return state
 
     def get_door_state(self):
+        ##have option for not having a door switch
         if gpio_available:
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
 
-
+##Not sure how this class is used
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
         threading.Thread.__init__(self)
@@ -258,7 +279,7 @@ class TempSensorReal(TempSensor):
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
 
-
+##Cool math. I'll leave it alone
 class TempSensorSimulate(TempSensor):
     def __init__(self, oven, time_step, sleep_time):
         TempSensor.__init__(self, time_step)
@@ -309,23 +330,29 @@ class TempSensorSimulate(TempSensor):
 
             time.sleep(self.sleep_time)
 
-
+##I'd like to add units to profiles. Option for time (seconds, minutes, hours) and temperature (Celcius, Farenheit, Kelvin)
+##The code will still run in celcius/seconds, so the profile has to get converted to that
 class Profile():
     def __init__(self, json_data):
         obj = json.loads(json_data)
         self.name = obj["name"]
         self.data = sorted(obj["data"])
+        ##TODO: Read unit data
 
     def get_duration(self):
+        ##TODO: convert to seconds
         return max([t for (t, x) in self.data])
 
+
     def get_surrounding_points(self, time):
+        ##todo: convert to seconds
         if time > self.get_duration():
             return (None, None)
 
         prev_point = None
         next_point = None
-
+        
+        ##TODO: convert to seconds/celcius
         for i in range(len(self.data)):
             if time < self.data[i][0]:
                 prev_point = self.data[i-1]
