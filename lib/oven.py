@@ -227,7 +227,7 @@ class Oven (threading.Thread):
                 #    self.set_heat(False)
                 #    self.set_cool(self.temp_sensor.temperature > self.target)
 
-                ##These should be configurable... assuming "air" is used. Still not sure what it does
+                
                 if self.temp_sensor.temperature > 200:
                     self.set_air(False)
                 elif self.temp_sensor.temperature < 180:
