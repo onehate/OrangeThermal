@@ -14,29 +14,38 @@ import config
 log = logging.getLogger(__name__)
 
 try:
-    if config.max31855 + config.max6675 + config.max31855spi > 1:
+    if config.max31855 + config.max6675 + config.max31855spi != 1:
         log.error("choose (only) one converter IC")
         exit()
     if config.max31855:
         from max31855 import MAX31855, MAX31855Error
         log.info("import MAX31855")
+		spi_reserved_gpio = [gpio_sensor_cs, gpio_sensor_clock, gpio_sensor_data]
     if config.max31855spi:
         import Adafruit_GPIO.SPI as SPI
         from max31855spi import MAX31855SPI, MAX31855SPIError
         log.info("import MAX31855SPI")
         spi_reserved_gpio = [7, 8, 9, 10, 11]
-        if config.gpio_air in spi_reserved_gpio:
-            raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
-        if config.gpio_cool in spi_reserved_gpio:
-            raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
-        if config.gpio_door in spi_reserved_gpio:
-            raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
-        if config.gpio_heat in spi_reserved_gpio:
-            raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
+
     if config.max6675:
         from max6675 import MAX6675, MAX6675Error
         log.info("import MAX6675")
-    sensor_available = True
+		spi_reserved_gpio = [gpio_sensor_cs, gpio_sensor_clock, gpio_sensor_data]
+    
+	
+	if air_enabled and config.gpio_air in spi_reserved_gpio:
+		raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
+	if cool_enabled and config.gpio_cool in spi_reserved_gpio:
+		raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
+	if door_enabled and config.gpio_door in spi_reserved_gpio:
+		raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
+	if heat_enabled and config.gpio_heat in spi_reserved_gpio:
+		raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
+	if heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
+		raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
+	
+	sensor_available = True
+	
 except ImportError:
     log.exception("Could not initialize temperature sensor, using dummy values!")
     sensor_available = False
@@ -45,10 +54,11 @@ try:
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    GPIO.setup(config.gpio_heat, GPIO.OUT)
-    GPIO.setup(config.gpio_cool, GPIO.OUT)
-    GPIO.setup(config.gpio_air, GPIO.OUT)
-    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(config.gpio_heat, GPIO.OUT) 	if heat_enabled
+	GPIO.setup(config.gpio_heat2, GPIO.OUT) if heat2_enabled
+    GPIO.setup(config.gpio_cool, GPIO.OUT) 	if cool_enabled
+    GPIO.setup(config.gpio_air, GPIO.OUT) 	if air_enabled
+    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP) if door_enabled
 
     gpio_available = True
 except ImportError:
@@ -68,7 +78,7 @@ class Oven (threading.Thread):
         self.simulate = simulate
         self.time_step = time_step
         self.reset()
-        if simulate:  ##I don't see a strong use case for simulation, but leave it in for if this gets pulled into main code
+        if simulate: 
             self.temp_sensor = TempSensorSimulate(self, 0.5, self.time_step)
         if sensor_available:
             self.temp_sensor = TempSensorReal(self.time_step)
@@ -87,11 +97,11 @@ class Oven (threading.Thread):
         self.target = 0
         self.heating = False
         self.heatpwm = 0;
-        self.door = self.get_door_state()  ##Should be a way to disable the door sensors
+        self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
         self.set_heat(0)
-        self.set_cool(False) ##...and cooling
-        self.set_air(False) ##...and... air? Not sure what this is for
+        self.set_cool(False)
+        self.set_air(False)
         self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp) ##PID values need to be readable or writable
                                                                                   ##store in config? Or elsewhere
 
@@ -266,7 +276,6 @@ class Oven (threading.Thread):
                  GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
-        ##This should also be in the other thread. Add option to not have cooling
         if value:
             self.cool = 1.0
             if gpio_available:
@@ -303,7 +312,7 @@ class Oven (threading.Thread):
 
     def get_door_state(self):
         ##have option for not having a door switch
-        if gpio_available:
+        if gpio_available and door_enabled:
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
@@ -346,7 +355,7 @@ class TempSensorReal(TempSensor):
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
 
-##Cool math. I'll leave it alone
+
 class TempSensorSimulate(TempSensor):
     def __init__(self, oven, time_step, sleep_time):
         TempSensor.__init__(self, time_step)
@@ -397,29 +406,36 @@ class TempSensorSimulate(TempSensor):
 
             time.sleep(self.sleep_time)
 
-##I'd like to add units to profiles. Option for time (seconds, minutes, hours) and temperature (Celcius, Farenheit, Kelvin)
-##The code will still run in celcius/seconds, so the profile has to get converted to that
+##I'd like to add units to profiles. Option for time (seconds, minutes, hours) and temperature (Celsius, Fahrenheit, Kelvin)
+##The code will still run in Celsius/seconds, so the profile has to get converted to that
 class Profile():
     def __init__(self, json_data):
         obj = json.loads(json_data)
         self.name = obj["name"]
+		
+		#self.data is an array of 2-element arrays [time, temp]
         self.data = sorted(obj["data"])
-        ##TODO: Read unit data
+		
+        self.tempunit = obj["TempUnit"]
+		self.timeunit = obj["TimeUnit"]
+		
+		#Convert these to seconds/Celsius
+		tconv = (60 if (self.tempunit == "minutes") else 3600 if (self.tempunit == "hours") else 1)
+		self.data[:][0] = [i * tconv for i in self.data[:][0]]
+		if self.tempunit == "Fahrenheit": 	self.data[:][1] = [(i - 32) / 1.8 for i in self.data[:][1]]
+		elif self.tempunit == "Kelvin": 	self.data[:][1] = [i - 273.15 for i in self.data[:][1]]
 
     def get_duration(self):
-        ##TODO: convert to seconds
         return max([t for (t, x) in self.data])
 
 
     def get_surrounding_points(self, time):
-        ##todo: convert to seconds
         if time > self.get_duration():
             return (None, None)
 
         prev_point = None
         next_point = None
         
-        ##TODO: convert to seconds/celcius
         for i in range(len(self.data)):
             if time < self.data[i][0]:
                 prev_point = self.data[i-1]

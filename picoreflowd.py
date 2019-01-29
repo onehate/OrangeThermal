@@ -88,7 +88,7 @@ def handle_control():
                 oven.abort_run()
 			elif msgdict.get("cmd") == "TUNE":
 				log.info("TUNE command received")
-				oven.run_tuning(500, 6)
+				oven.run_tuning(500, 6)  #These parameters need to be settable
         except WebSocketError:
             break
     log.info("websocket (control) closed")
