@@ -33,15 +33,15 @@ try:
 		spi_reserved_gpio = [gpio_sensor_cs, gpio_sensor_clock, gpio_sensor_data]
     
 	
-	if air_enabled and config.gpio_air in spi_reserved_gpio:
+	if config.air_enabled and config.gpio_air in spi_reserved_gpio:
 		raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
-	if cool_enabled and config.gpio_cool in spi_reserved_gpio:
+	if config.cool_enabled and config.gpio_cool in spi_reserved_gpio:
 		raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
-	if door_enabled and config.gpio_door in spi_reserved_gpio:
+	if config.door_enabled and config.gpio_door in spi_reserved_gpio:
 		raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
-	if heat_enabled and config.gpio_heat in spi_reserved_gpio:
+	if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
 		raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
-	if heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
+	if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
 		raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
 	
 	sensor_available = True
@@ -54,11 +54,11 @@ try:
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
-    GPIO.setup(config.gpio_heat, GPIO.OUT) 	if heat_enabled
-	GPIO.setup(config.gpio_heat2, GPIO.OUT) if heat2_enabled
-    GPIO.setup(config.gpio_cool, GPIO.OUT) 	if cool_enabled
-    GPIO.setup(config.gpio_air, GPIO.OUT) 	if air_enabled
-    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP) if door_enabled
+    GPIO.setup(config.gpio_heat, GPIO.OUT) 	if config.heat_enabled
+	GPIO.setup(config.gpio_heat2, GPIO.OUT) if config.heat2_enabled
+    GPIO.setup(config.gpio_cool, GPIO.OUT) 	if config.cool_enabled
+    GPIO.setup(config.gpio_air, GPIO.OUT) 	if config.air_enabled
+    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP) if config.door_enabled
 
     gpio_available = True
 except ImportError:
@@ -73,7 +73,7 @@ class Oven (threading.Thread):
     STATE_TUNING = "TUNING"
 
     def __init__(self, simulate=False, time_step=config.sensor_time_wait):
-        threading.Thread.__init__(self) ##I don't have a strong idea of how threading works in python. Leave intact
+        threading.Thread.__init__(self)
         self.daemon = True
         self.simulate = simulate
         self.time_step = time_step
@@ -87,7 +87,10 @@ class Oven (threading.Thread):
                                                   self.time_step,
                                                   self.time_step)
         self.temp_sensor.start()
+		self.PWM = PWM(self, config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
+		self.PWM.start()
         self.start()
+		self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp) 
 
     def reset(self):
         self.profile = None
@@ -95,15 +98,14 @@ class Oven (threading.Thread):
         self.runtime = 0
         self.totaltime = 0
         self.target = 0
-        self.heating = False
-        self.heatpwm = 0;
+        self.heatOn = False
+        self.heat = 0;
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
         self.set_heat(0)
         self.set_cool(False)
         self.set_air(False)
-        self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp) ##PID values need to be readable or writable
-                                                                                  ##store in config? Or elsewhere
+        self.pid.reset()
 
     def run_profile(self, profile):
         ##Looks good
@@ -112,6 +114,7 @@ class Oven (threading.Thread):
         self.totaltime = profile.get_duration()
         self.state = Oven.STATE_RUNNING
         self.start_time = datetime.datetime.now()
+		self.pid.reset()
         log.info("Starting")
 
     def abort_run(self):
@@ -123,10 +126,11 @@ class Oven (threading.Thread):
         log.info("Running auto-tune algorithm. Target: %.0f deg C, Cycles: %", temp_target, n_cycles);
         self.state = Oven.STATE_TUNING
         self.start_time = datetime.datetime.now()
-        self.heating = 0
-        self.heatpwm = 0.5       #Marlin starts at 50%. What happens if this isn't enough to hit the target?
-        self.bias = self.heatpwm    #Thinking these shouldn't be class variables? Need to brush up on python and namespace
-        self.d = self.heatpwm
+        self.heatOn = 0
+        self.heat = 0.5       ##Marlin starts at 50%. What happens if this isn't enough to hit the target?
+        self.bias = self.heat   
+		self.tunecycles = n_cycles
+        self.d = self.heat
         self.target = temp_target
         self.maxtemp = -10000
         self.mintemp = 10000
@@ -149,26 +153,26 @@ class Oven (threading.Thread):
                 temp = self.temp_sensor.temperature
                 self.maxtemp = max(self.maxtemp, temp)
                 self.mintemp = min(self.mintemp, temp)
-                if (self.heating and temp > self.target):
+                if (self.heatOn and temp > self.target):
                     #These events occur once we swing over the temperature target
-                    if((now - self.t2).total_seconds > 5):  #debounce: prevent noise from triggering false transition
+                    if((now - self.t2).total_seconds > 10):  #debounce: prevent noise from triggering false transition
                                                             #This might need to be longer for large systems
-                            self.heating = false
-                            self.heatpwm = (self.bias - self.d)/2
+                            self.heatOn = false
+                            self.heat = (self.bias - self.d)/2
                             self.t1 = now
                             self.t_high = (self.t1-self.t2).total_seconds
                             self.maxtemp = temp
                             
-                if (self.heating == false and temp < self.target):
+                if (self.heatOn == false and temp < self.target):
                     #This occurs when we swing below the target
-                    if((now - self.t1).total_seconds > 5): #same debounce
-                        self.heating = true
+                    if((now - self.t1).total_seconds > 10): #same debounce
+                        self.heatOn = true
                         t2 = now
                         self.t_low = (self.t2-self.t1).total_seconds
                         if (self.cycles > 0):
                             self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
                             self.bias = sorted([20, self.bias, 80])[1]
-                            self.d = self.bias if self.bias < 50 else 99 - self.bias       ##not sure what all this does
+                            self.d = self.bias if self.bias < 50 else 99 - self.bias      ##not sure what all this do
                             log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.min, self.max)
                             if (self.cycles > 2):
                                 #Magic formulas:
@@ -180,17 +184,18 @@ class Oven (threading.Thread):
                                 Kd = Kp * Tu/8
                                 log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
                                 
-                            self.heatpwm = (self.bias + self.d)/2
+                            self.heat = (self.bias + self.d)/2
                             self.cycles++
                             self.min = self.target
                             
-                #TODO: End conditions
-                                
+				if  self.cycles > self.tunecycles
+					self.PID.Kp = Kp
+					self.PID.Ki = Ki
+					self.PID.Kd = Kd
+					log.info("Tuning Complete.")
+					self.reset()
                             
-                            
-                
             
-            ## I might rewrite a lot of this
             if self.state == Oven.STATE_RUNNING:
                 if self.simulate: ##Probably just won't touch the simulation
                     self.runtime += 0.5
@@ -199,7 +204,7 @@ class Oven (threading.Thread):
                     self.runtime = runtime_delta.total_seconds()
                 log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % 
                          (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, 
-                          self.totaltime))  ##Consider being able to display deg F
+                          self.totaltime))
                 self.target = self.profile.get_target_temperature(self.runtime)
                 pid = self.pid.compute(self.target, self.temp_sensor.temperature)
                 
@@ -207,7 +212,7 @@ class Oven (threading.Thread):
 
                 log.info("pid: %.3f" % pid)
 
-                self.set_cool(pid <= -1) ##cooling might not be enabled
+                self.set_cool(pid <= -1) 
                 if(pid > 0):
                     ##keep this... but double check that it won't cause false failure in large systems
                     # The temp should be changing with the heat on
@@ -219,16 +224,16 @@ class Oven (threading.Thread):
                     # If the heat is on and nothing is changing, reset
                     # The direction or amount of change does not matter
                     # This prevents runaway in the event of a sensor read failure                   
-                    if temperature_count > 20:
+                    if temperature_count > 100:
                         log.info("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
                 else:
                     temperature_count = 0
                     
-                #Capture the last temperature value.  This must be done before set_heat, since there is a sleep in there now.
+
                 last_temp = self.temp_sensor.temperature
+				self.heat = pid             
                 
-                self.set_heat(pid)
                 
                 #if self.profile.is_rising(self.runtime):
                 #    self.set_cool(False)
@@ -238,62 +243,63 @@ class Oven (threading.Thread):
                 #    self.set_cool(self.temp_sensor.temperature > self.target)
 
                 
-                if self.temp_sensor.temperature > 200:
-                    self.set_air(False)
-                elif self.temp_sensor.temperature < 180:
-                    self.set_air(True)
+                # if self.temp_sensor.temperature > 200:
+                    # self.set_air(False)
+                # elif self.temp_sensor.temperature < 180:
+                    # self.set_air(True)
 
                 if self.runtime >= self.totaltime:
                     self.reset()
 
-            ##Don't like that this sleep is here
-            if pid > 0:
-                time.sleep(self.time_step * (1 - pid))
-            else:
-                time.sleep(self.time_step)
 
-    def set_heat(self, value):
-        ##Not a fan of bit-banging in the same thread as the control algorithm
-        ##for one thing, it forces the pwm period to be the same as the control cycle time
-        ##Move this to a different thread or use hardware PWM
-        if value > 0:
-            self.heat = 1.0
-            if gpio_available:
-               if config.heater_invert:
-                 GPIO.output(config.gpio_heat, GPIO.LOW)
-                 time.sleep(self.time_step * value)
-                 GPIO.output(config.gpio_heat, GPIO.HIGH)   
-               else:
-                 GPIO.output(config.gpio_heat, GPIO.HIGH)
-                 time.sleep(self.time_step * value)
-                 GPIO.output(config.gpio_heat, GPIO.LOW)   
-        else:
-            self.heat = 0.0
-            if gpio_available:
-               if config.heater_invert:
-                 GPIO.output(config.gpio_heat, GPIO.HIGH)
-               else:
-                 GPIO.output(config.gpio_heat, GPIO.LOW)
+		if self.heatOn:
+			self.PWM.setHeat1 = self.heat + config.heat1adj
+			self.PWM.setHeat2 = self.heat + config.heat2adj
+		else:
+			self.PWM.setHeat1 = 0
+			self.PWM.setHeat2 = 0
+
+		time.sleep(self.time_step)
+
+    # def set_heat(self, value):
+
+        # if value > 0:
+            # self.heat = 1.0
+            # if gpio_available:
+               # if config.heater_invert:
+                 # GPIO.output(config.gpio_heat, GPIO.LOW)
+                 # time.sleep(self.time_step * value)
+                 # GPIO.output(config.gpio_heat, GPIO.HIGH)   
+               # else:
+                 # GPIO.output(config.gpio_heat, GPIO.HIGH)
+                 # time.sleep(self.time_step * value)
+                 # GPIO.output(config.gpio_heat, GPIO.LOW)   
+        # else:
+            # self.heat = 0.0
+            # if gpio_available:
+               # if config.heater_invert:
+                 # GPIO.output(config.gpio_heat, GPIO.HIGH)
+               # else:
+                 # GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
         if value:
             self.cool = 1.0
-            if gpio_available:
+            if gpio_available and config.cool_enabled:
                 GPIO.output(config.gpio_cool, GPIO.LOW)
         else:
             self.cool = 0.0
-            if gpio_available:
+            if gpio_available and config.cool_enabled:
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
-        ##Ditto
         if value:
             self.air = 1.0
-            if gpio_available:
+            if gpio_available and config.air_enabled:
                 GPIO.output(config.gpio_air, GPIO.LOW)
         else:
             self.air = 0.0
-            if gpio_available:
+            if gpio_available and config.air_enabled:
                 GPIO.output(config.gpio_air, GPIO.HIGH)
 
     def get_state(self):
@@ -302,7 +308,7 @@ class Oven (threading.Thread):
             'temperature': self.temp_sensor.temperature,
             'target': self.target,
             'state': self.state,
-            'heat': self.heat,
+            'heat': self.heat * self.heatOn,
             'cool': self.cool,
             'air': self.air,
             'totaltime': self.totaltime,
@@ -311,13 +317,85 @@ class Oven (threading.Thread):
         return state
 
     def get_door_state(self):
-        ##have option for not having a door switch
-        if gpio_available and door_enabled:
+      
+        if gpio_available and config.door_enabled:
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
 
-##Not sure how this class is used
+class PWM(threading.Thread):
+	def __init__(self, Period_s, MinimumOnOff_s, PeriodMax_s)
+		threading.Thread.__init__(self)
+		self.PeriodSet = PWM_Period_s
+		self.MinimumOnOff = MinimumOnOff_s
+		self.PeriodMax = PeriodMax_s
+		self.setHeat1 = 0
+		
+		self.lock = threading.Lock()
+		
+	def setHeat1(self, newPWM)
+		self.setHeat1 = sorted((0, newPWM, 1))[1]
+		self.adjPWM()
+	def setHeat2(self, newPWM)
+		self.setHeat2 = sorted((0, newPWM, 1))[1]
+		self.adjPWM()
+		
+	def adjPWM(self)
+		period = self.PeriodSet
+			
+		##only do period adjustments for heat1? makes it simpler
+		#Calculate on/off time of each cycle
+		heat1ontime = self.setHeat1 * period
+		heat1offtime = period - heat1ontime
+		if (heat1ontime < self.MinimumOnOff):
+			#does extending the period fix this?
+			if (self.setHeat1 * self.PeriodMax >= self.MinimumOnOff):
+				period = self.MinimumOnOff / self.setHeat1
+				heat1ontime = self.MinimumOnOff
+			else:
+				heat1ontime = 0
+		elif (heat1offtime < self.MinimumOnOff):
+			if ((1-self.setHeat1) * self.PeriodMax >= self.MinimumOnOff):
+				period = self.MinimumOnOff / (1-self.setHeat1)
+				heat1ontime = period - self.MinimumOnOff
+			else:
+				heat1ontime = period
+
+		with lock:
+			self.period = period
+			self.heat1On = heat1ontime
+			self.heat2On = self.setHeat2 * period  ## this could violate the min pwm rules
+		
+	def run(self)
+		while True:
+			start = time()
+			#grab our values here in case they change mid-period
+			#Using a lock to prevent values being acquired while they're changed
+			with lock:
+				pwmperiod = self.period
+				pwmheat1 = self.heat1On
+				pwmheat2 = self.heat2On
+			
+			
+			GPIO.output(config.gpio_heat, GPIO.HIGH) 
+			if (pwmheat1 < pwmperiod - pwmheat2):
+				time.sleep(self.heat1On)
+				GPIO.output(config.gpio_heat, GPIO.LOW)
+				time.sleep((pwmperiod - pwmheat2) - (time()-start))
+				GPIO.output(config.gpio_heat2, GPIO.HIGH)
+			else:
+				time.sleep(pwmperiod - pwmheat2)
+				GPIO.output(config.gpio_heat2, GPIO.HIGH)
+				time.sleep(pwmheat1 - (time()-start))
+				GPIO.output(config.gpio_heat, GPIO.LOW)
+			 
+			time.sleep(pwmperiod-(time()-start))
+			GPIO.output(config.gpio_heat2, GPIO.LOW)
+			
+			
+			
+
+
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
         threading.Thread.__init__(self)
@@ -375,10 +453,10 @@ class TempSensorSimulate(TempSensor):
         t = t_env  # deg C  temp in oven
         t_h = t    # deg C temp of heat element
         while True:
-            #heating energy
+            #heatOn energy
             Q_h = p_heat * self.time_step * self.oven.heat
 
-            #temperature change of heat element by heating
+            #temperature change of heat element by heatOn
             t_h += Q_h / c_heat
 
             if self.oven.air:
@@ -406,8 +484,7 @@ class TempSensorSimulate(TempSensor):
 
             time.sleep(self.sleep_time)
 
-##I'd like to add units to profiles. Option for time (seconds, minutes, hours) and temperature (Celsius, Fahrenheit, Kelvin)
-##The code will still run in Celsius/seconds, so the profile has to get converted to that
+
 class Profile():
     def __init__(self, json_data):
         obj = json.loads(json_data)
@@ -470,6 +547,11 @@ class PID():
         self.lastNow = datetime.datetime.now()
         self.iterm = 0
         self.lastErr = 0
+		
+	def reset(self)
+		self.lastNow = datetime.datetime.now()
+        self.iterm = 0
+        self.lastErr = 0
 
     def compute(self, setpoint, ispoint):
         now = datetime.datetime.now()
@@ -477,11 +559,11 @@ class PID():
 
         error = float(setpoint - ispoint)
         self.iterm += (error * timeDelta * self.ki)
-        self.iterm = sorted([-1, self.iterm, 1])[1]
+        self.iterm = sorted([-1.1, self.iterm, 1.1])[1]
         dErr = (error - self.lastErr) / timeDelta
 
         output = self.kp * error + self.iterm + self.kd * dErr
-        output = sorted([-1, output, 1])[1]
+        #output = sorted([-1, output, 1])[1] #allow values to exceed 100%
         self.lastErr = error
         self.lastNow = now
 
