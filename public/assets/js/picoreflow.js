@@ -13,6 +13,7 @@ var time_scale_long = "Seconds";
 var temp_scale_display = "C";
 var kwh_rate = 0.26;
 var currency_type = "EUR";
+var oven_power = 3850;              //average power consumption of oven in watts
 
 var host = "ws://" + window.location.hostname + ":" + window.location.port;
 var ws_status = new WebSocket(host+"/status");
@@ -47,7 +48,7 @@ function updateProfile(id)
     selected_profile = id;
     selected_profile_name = profiles[id].name;
     var job_seconds = profiles[id].data.length === 0 ? 0 : parseInt(profiles[id].data[profiles[id].data.length-1][0]);
-    var kwh = (3850*job_seconds/3600/1000).toFixed(2); //TODO: Update cost calcs to be more versatile
+    var kwh = (oven_power*job_seconds/3600/1000).toFixed(2);
     var cost =  (kwh*kwh_rate).toFixed(2);
     var job_time = new Date(job_seconds * 1000).toISOString().substr(11, 8);
     $('#sel_prof').html(profiles[id].name);
@@ -363,7 +364,7 @@ function saveProfile()
         last = rawdata[i][0];
     }
 
-    var profile = { "type": "profile", "data": data, "name": name }
+    var profile = { "type": "profile", "data": data, "name": name, "TempUnit": temp_scale, "TimeUnit": time_scale_profile }
     var put = { "cmd": "PUT", "profile": profile }
 
     var put_cmd = JSON.stringify(put);
@@ -497,6 +498,20 @@ $(document).ready(function()
         {
             x = JSON.parse(e.data);
 
+            //Convert to expected units
+            if (temp_scale == "f")
+            {
+                x.temperature = (x.temperature * 9/5) + 32;
+            }
+            if (time_scale_profile == "m")
+            {
+                x.runtime = x.runtime / 60;
+            } else if (time_scale_profile == "h")
+            {
+                x.runtime = x.runtime / 3600;
+            }
+
+
             if (x.type == "backlog")
             {
                 if (x.profile)
@@ -522,7 +537,7 @@ $(document).ready(function()
 
                 if (state!=state_last)
                 {
-                    if(state_last == "RUNNING")
+                    if(state_last == "RUNNING" || state_last == "TUNING")
                     {
                         $('#target_temp').html('---');
                         updateProgress(0);
@@ -539,7 +554,7 @@ $(document).ready(function()
                     }
                 }
 
-                if(state=="RUNNING")
+                if(state=="RUNNING" || state == "TUNING")
                 {
                     $("#nav_start").hide();
                     $("#nav_stop").show();
@@ -553,8 +568,6 @@ $(document).ready(function()
                     updateProgress(parseFloat(x.runtime)/parseFloat(x.totaltime)*100);
                     $('#state').html('<span class="glyphicon glyphicon-time" style="font-size: 22px; font-weight: normal"></span><span style="font-family: Digi; font-size: 40px;">' + eta + '</span>');
                     $('#target_temp').html(parseInt(x.target));
-
-
                 }
                 else
                 {
