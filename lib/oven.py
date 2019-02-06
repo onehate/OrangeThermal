@@ -40,7 +40,7 @@ try:
 	if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
 		raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
 	if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
-		raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
+		raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
 
 	sensor_available = True
 
@@ -107,7 +107,6 @@ class Oven (threading.Thread):
         self.pid.reset()
 
     def run_profile(self, profile):
-        ##Looks good
         log.info("Running profile %s" % profile.name)
         self.profile = profile
         self.totaltime = profile.get_duration()
@@ -119,8 +118,6 @@ class Oven (threading.Thread):
     def abort_run(self):
         self.reset()
 
-        ##Right here is where I'd add a PID tuning algorithm. Create function to start tuning, and add a if.state=tuning to run algo
-        ##Also add another Oven.state for "tuning"
     def run_tuning(self): #, temp_target, n_cycles):
         temp_target = config.tune_target_temp
         n_cycles = config.tune_cycles
@@ -128,13 +125,14 @@ class Oven (threading.Thread):
         log.info("Running auto-tune algorithm. Target: %.0f deg C, Cycles: %", temp_target, n_cycles);
         self.state = Oven.STATE_TUNING
         self.start_time = datetime.datetime.now()
-        self.heatOn = False
+        self.heatOn = True
         self.heat = 0.5       ##Marlin starts at 50%. What happens if this isn't enough to hit the target?
         self.bias = self.heat
         self.tunecycles = n_cycles
         self.d = self.heat
         self.target = temp_target
         self.totaltime = n_cycles * 1000        #Just an estimate; no good way to fill this in
+		self.cycles = 0
         self.maxtemp = -10000
         self.mintemp = 10000
         self.t1 = datetime.datetime.now()   #t1 is when the temp goes over target
@@ -166,7 +164,7 @@ class Oven (threading.Thread):
                     self.t_high = (self.t1-self.t2).total_seconds
                     self.maxtemp = temp
 
-                if (self.heatOn == False and temp < self.target) and ((now - self.t1).total_seconds > 10):
+                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds > 10:
                     #This occurs when we swing below the target
                     self.heatOn = True
                     t2 = now
@@ -175,20 +173,21 @@ class Oven (threading.Thread):
                         self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
                         self.bias = sorted([5, self.bias, 80])[1]
                         self.d = self.bias if self.bias < 50 else 99 - self.bias
-                        log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.min, self.max)
-                        if (self.cycles > 2):
-                            #Magic formulas:
-                            Ku = (4.0 * self.d)/ (math.pi * (self.max - self.min) / 2)
-                            Tu = (self.t_low + self.t_high)
-                            log.info("Ku: %, Tu: %", Ku, Tu)
-                            Kp = 0.6 * Ku
-                            Ki = 2*Kp/Tu
-                            Kd = Kp * Tu/8
-                            log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
+                        log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.mintemp, self.maxtemp)
+					if self.cycles > 2:
+						#Magic formulas:
+						Ku = (4.0 * self.d)/ (math.pi * (self.maxtemp - self.mintemp) / 2)
+						Tu = (self.t_low + self.t_high)
+						log.info("Ku: %, Tu: %", Ku, Tu)
+						Kp = 0.6 * Ku
+						Ki = 2*Kp/Tu
+						Kd = Kp * Tu/8
+						log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
 
-                        self.heat = (self.bias + self.d)/2
-                        self.cycles= self.cycles + 1
-                        self.min = self.target
+					self.heat = (self.bias + self.d)/2
+					self.cycles= self.cycles + 1
+					self.mintemp = self.target
+					self.maxtemp = self.target
 
                 if  self.cycles > self.tunecycles:
                     self.PID.Kp = Kp
@@ -257,10 +256,11 @@ class Oven (threading.Thread):
 
             #Do these regardless of the machine state
             if self.heat != 0:
-                self.PWM.setHeat1 = self.heat + config.heat1adj
-                self.PWM.setHeat2 = self.heat + config.heat2adj
+                self.PWM.setHeat1(self.heat + config.heat1adj)
+                self.PWM.setHeat2(self.heat + config.heat2adj)
             else:
                 self.PWM.setHeat1(0)
+				self.PWM.setHeat2(0)
             time.sleep(self.time_step)
 
 
@@ -290,7 +290,7 @@ class Oven (threading.Thread):
             'temperature': self.temp_sensor.temperature,
             'target': self.target,
             'state': self.state,
-            'heat': self.heat * self.heatOn,
+            'heat': self.heat,
             'cool': self.cool,
             'air': self.air,
             'totaltime': self.totaltime,
@@ -362,7 +362,7 @@ class PWM(threading.Thread):
 
 
         while True:
-			start = time()
+			start = datetime.datetime.now()
 			#grab our values here in case they change mid-period
 			#Using a lock to prevent values being acquired while they're changed
             with lock:
@@ -370,21 +370,30 @@ class PWM(threading.Thread):
                 pwmheat1 = self.heat1On
                 pwmheat2 = self.heat2On
 
+				
+			# To improve performance, the heaters will alternate. Heater 1 turns on at the beginning of the period,
+			# and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
+			# exceeds the period, otherwise there will some time where neither is on.
+			# Each on/off checks to make sure the the on time is not zero or one
+			if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
+			if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
+				time.sleep(self.heat1On)
+				if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
+				
+				#When sleeping here, need to check that the required time has not already elapsed
+				t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).totalseconds
+				if t > 0: time.sleep(t)
+				if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+			else:										#Otherwise, 2 turns on before 1 turns off
+				time.sleep(pwmperiod - pwmheat2)
+				if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+				t = pwmheat1 - (datetime.datetime.now()-start).totalseconds
+				if t > 0: time.sleep(t)
+				if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
-        GPIO.output(config.gpio_heat, ON)
-        if (pwmheat1 < pwmperiod - pwmheat2):
-            time.sleep(self.heat1On)
-            GPIO.output(config.gpio_heat, OFF)
-            time.sleep((pwmperiod - pwmheat2) - (time()-start))
-            GPIO.output(config.gpio_heat2, ON)
-        else:
-            time.sleep(pwmperiod - pwmheat2)
-            GPIO.output(config.gpio_heat2, ON)
-            time.sleep(pwmheat1 - (time()-start))
-            GPIO.output(config.gpio_heat, OFF)
-
-        time.sleep(pwmperiod-(time()-start))
-        GPIO.output(config.gpio_heat2, OFF)
+			t = pwmperiod - (datetime.datetime.now()-start).totalseconds
+			if t > 0: time.sleep(t)
+			if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
 
 
