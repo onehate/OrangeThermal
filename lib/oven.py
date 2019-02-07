@@ -7,7 +7,6 @@ import json
 import config
 import math
 
-##This stuff gets done on import. Probably okay, but consider moving to init statement
 
 log = logging.getLogger(__name__)
 
@@ -31,18 +30,18 @@ try:
         spi_reserved_gpio = [config.gpio_sensor_cs, config.gpio_sensor_clock, config.gpio_sensor_data]
 
 
-	if config.air_enabled and config.gpio_air in spi_reserved_gpio:
-		raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
-	if config.cool_enabled and config.gpio_cool in spi_reserved_gpio:
-		raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
-	if config.door_enabled and config.gpio_door in spi_reserved_gpio:
-		raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
-	if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
-		raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
-	if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
-		raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
+    if config.air_enabled and config.gpio_air in spi_reserved_gpio:
+        raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
+    if config.cool_enabled and config.gpio_cool in spi_reserved_gpio:
+        raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
+    if config.door_enabled and config.gpio_door in spi_reserved_gpio:
+        raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
+    if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
+        raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
+    if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
+        raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
 
-	sensor_available = True
+    sensor_available = True
 
 except ImportError:
     log.exception("Could not initialize temperature sensor, using dummy values!")
@@ -132,7 +131,7 @@ class Oven (threading.Thread):
         self.d = self.heat
         self.target = temp_target
         self.totaltime = n_cycles * 1000        #Just an estimate; no good way to fill this in
-		self.cycles = 0
+        self.cycles = 0
         self.maxtemp = -10000
         self.mintemp = 10000
         self.t1 = datetime.datetime.now()   #t1 is when the temp goes over target
@@ -174,20 +173,20 @@ class Oven (threading.Thread):
                         self.bias = sorted([5, self.bias, 80])[1]
                         self.d = self.bias if self.bias < 50 else 99 - self.bias
                         log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.mintemp, self.maxtemp)
-					if self.cycles > 2:
-						#Magic formulas:
-						Ku = (4.0 * self.d)/ (math.pi * (self.maxtemp - self.mintemp) / 2)
-						Tu = (self.t_low + self.t_high)
-						log.info("Ku: %, Tu: %", Ku, Tu)
-						Kp = 0.6 * Ku
-						Ki = 2*Kp/Tu
-						Kd = Kp * Tu/8
-						log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
+                    if self.cycles > 2:
+                        #Magic formulas:
+                        Ku = (4.0 * self.d)/ (math.pi * (self.maxtemp - self.mintemp) / 2)
+                        Tu = (self.t_low + self.t_high)
+                        log.info("Ku: %, Tu: %", Ku, Tu)
+                        Kp = 0.6 * Ku
+                        Ki = 2*Kp/Tu
+                        Kd = Kp * Tu/8
+                        log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
 
-					self.heat = (self.bias + self.d)/2
-					self.cycles= self.cycles + 1
-					self.mintemp = self.target
-					self.maxtemp = self.target
+                    self.heat = (self.bias + self.d)/2
+                    self.cycles= self.cycles + 1
+                    self.mintemp = self.target
+                    self.maxtemp = self.target
 
                 if  self.cycles > self.tunecycles:
                     self.PID.Kp = Kp
@@ -223,7 +222,7 @@ class Oven (threading.Thread):
                         temperature_count = 0
                     # If the heat is on and nothing is changing, reset
                     # The direction or amount of change does not matter
-                    # This prevents runaway in the event of a sensor read failure                   
+                    # This prevents runaway in the event of a sensor read failure
                     if temperature_count > 100:
                         log.info("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
@@ -260,7 +259,7 @@ class Oven (threading.Thread):
                 self.PWM.setHeat2(self.heat + config.heat2adj)
             else:
                 self.PWM.setHeat1(0)
-				self.PWM.setHeat2(0)
+                self.PWM.setHeat2(0)
             time.sleep(self.time_step)
 
 
@@ -307,43 +306,43 @@ class Oven (threading.Thread):
 
 
 class PWM(threading.Thread):
-	def __init__(self, Period_s, MinimumOnOff_s, PeriodMax_s):
-		threading.Thread.__init__(self)
-		self.PeriodSet = PWM_Period_s
-		self.MinimumOnOff = MinimumOnOff_s
-		self.PeriodMax = PeriodMax_s
-		self.Heat1 = 0
+    def __init__(self, Period_s, MinimumOnOff_s, PeriodMax_s):
+        threading.Thread.__init__(self)
+        self.PeriodSet = PWM_Period_s
+        self.MinimumOnOff = MinimumOnOff_s
+        self.PeriodMax = PeriodMax_s
+        self.Heat1 = 0
 
-		self.lock = threading.Lock()
+        self.lock = threading.Lock()
 
-	def setHeat1(self, newPWM):
-		self.Heat1 = sorted((0, newPWM, 1))[1]
-		self.adjPWM()
-	def setHeat2(self, newPWM):
-		self.Heat2 = sorted((0, newPWM, 1))[1]
-		self.adjPWM()
+    def setHeat1(self, newPWM):
+        self.Heat1 = sorted((0, newPWM, 1))[1]
+        self.adjPWM()
+    def setHeat2(self, newPWM):
+        self.Heat2 = sorted((0, newPWM, 1))[1]
+        self.adjPWM()
 
-	def adjPWM(self):
-		period = self.PeriodSet
+    def adjPWM(self):
+        period = self.PeriodSet
 
-		##only do period adjustments for heat1? makes it simpler
-		#Calculate on/off time of each cycle
-		heat1ontime = self.Heat1 * period
-		heat1offtime = period - heat1ontime
-		if (heat1ontime < self.MinimumOnOff):
-			#the on time is under the minimum. First try extending the period
-			if (self.Heat1 * self.PeriodMax >= self.MinimumOnOff):
-				period = self.MinimumOnOff / self.Heat1
-				heat1ontime = self.MinimumOnOff
-			else:
+        ##only do period adjustments for heat1? makes it simpler
+        #Calculate on/off time of each cycle
+        heat1ontime = self.Heat1 * period
+        heat1offtime = period - heat1ontime
+        if (heat1ontime < self.MinimumOnOff):
+            #the on time is under the minimum. First try extending the period
+            if (self.Heat1 * self.PeriodMax >= self.MinimumOnOff):
+                period = self.MinimumOnOff / self.Heat1
+                heat1ontime = self.MinimumOnOff
+            else:
                 # That didn't work; just turn the heater off
-				heat1ontime = 0
-		elif (heat1offtime < self.MinimumOnOff):
-			if ((1-self.Heat1) * self.PeriodMax >= self.MinimumOnOff):
-				period = self.MinimumOnOff / (1-self.Heat1)
-				heat1ontime = period - self.MinimumOnOff
-			else:
-				heat1ontime = period
+                heat1ontime = 0
+        elif (heat1offtime < self.MinimumOnOff):
+            if ((1-self.Heat1) * self.PeriodMax >= self.MinimumOnOff):
+                period = self.MinimumOnOff / (1-self.Heat1)
+                heat1ontime = period - self.MinimumOnOff
+            else:
+                heat1ontime = period
 
         with lock:
             self.period = period
@@ -362,38 +361,38 @@ class PWM(threading.Thread):
 
 
         while True:
-			start = datetime.datetime.now()
-			#grab our values here in case they change mid-period
-			#Using a lock to prevent values being acquired while they're changed
+            start = datetime.datetime.now()
+            #grab our values here in case they change mid-period
+            #Using a lock to prevent values being acquired while they're changed
             with lock:
                 pwmperiod = self.period
                 pwmheat1 = self.heat1On
                 pwmheat2 = self.heat2On
 
-				
-			# To improve performance, the heaters will alternate. Heater 1 turns on at the beginning of the period,
-			# and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
-			# exceeds the period, otherwise there will some time where neither is on.
-			# Each on/off checks to make sure the the on time is not zero or one
-			if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
-			if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
-				time.sleep(self.heat1On)
-				if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
-				
-				#When sleeping here, need to check that the required time has not already elapsed
-				t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).totalseconds
-				if t > 0: time.sleep(t)
-				if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-			else:										#Otherwise, 2 turns on before 1 turns off
-				time.sleep(pwmperiod - pwmheat2)
-				if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-				t = pwmheat1 - (datetime.datetime.now()-start).totalseconds
-				if t > 0: time.sleep(t)
-				if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
-			t = pwmperiod - (datetime.datetime.now()-start).totalseconds
-			if t > 0: time.sleep(t)
-			if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
+            # To improve performance, the heaters will alternate. Heater 1 turns on at the beginning of the period,
+            # and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
+            # exceeds the period, otherwise there will some time where neither is on.
+            # Each on/off checks to make sure the the on time is not zero or one
+            if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
+            if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
+                time.sleep(self.heat1On)
+                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
+
+                #When sleeping here, need to check that the required time has not already elapsed
+                t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).totalseconds
+                if t > 0: time.sleep(t)
+                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+            else:										#Otherwise, 2 turns on before 1 turns off
+                time.sleep(pwmperiod - pwmheat2)
+                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+                t = pwmheat1 - (datetime.datetime.now()-start).totalseconds
+                if t > 0: time.sleep(t)
+                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
+
+            t = pwmperiod - (datetime.datetime.now()-start).totalseconds
+            if t > 0: time.sleep(t)
+            if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
 
 
@@ -493,7 +492,7 @@ class Profile():
         obj = json.loads(json_data)
         self.name = obj["name"]
 
-		#self.data is an array of 2-element arrays [time, temp]
+        #self.data is an array of 2-element arrays [time, temp]
         self.data = sorted(obj["data"])
 
         self.tempunit = obj["TempUnit"]
@@ -511,18 +510,26 @@ class Profile():
 
     def get_surrounding_points(self, time):
         if time > self.get_duration():
-            return (None, None)
+            return (self.data[-1], None)
 
         prev_point = None
         next_point = None
 
         for i in range(len(self.data)):
-            if time < self.data[i][0]:
+            if time <= self.data[i][0]:         #if time is on a point, return point and one before it
                 prev_point = self.data[i-1]
                 next_point = self.data[i]
                 break
 
         return (prev_point, next_point)
+
+    def get_index_of_time(self, time):
+        for i in range(len(self.data)):
+            if time == self.data[i][0]:
+                return i
+
+        return None
+
 
     def is_rising(self, time):
         (prev_point, next_point) = self.get_surrounding_points(time)
@@ -531,11 +538,38 @@ class Profile():
         else:
             return False
 
-    def get_target_temperature(self, time):
+    def get_target_temperature(self, time, currtemp = 10000):
+
+        (prev_point, next_point) = self.get_surrounding_points(time)
+
+        #if we haven't reached the last target, delay until we do
+        #check that we were going up and that we're not there yet
+
+        if config.must_hit_temp and self.is_rising(prev_point[0]) and currtemp < prev_point[1]:
+
+            #in this case, modify our profile to push the timing out
+            delay = time - prev_point[0]
+            index = self.get_index_of_time(prev_point[0])
+
+            (prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
+            oldslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]-prev_prev_point[0])
+
+            self.data[index:][0] = [t + delay for t in self.data[index:][0]]
+
+            #Reduce the target setpoint
+            #Determine original slope
+            #Determine new slope
+            (prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
+            newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]-prev_prev_point[0])
+
+            prev_point[1] = prev_point[1]-config.cone_slope_adj/3600 * (oldslope-newslope)
+
+            return prev_point[1]
+
         if time > self.get_duration():
             return 0
 
-        (prev_point, next_point) = self.get_surrounding_points(time)
+
 
         incl = float(next_point[1] - prev_point[1]) / float(next_point[0] - prev_point[0])
         temp = prev_point[1] + (time - prev_point[0]) * incl
@@ -551,8 +585,8 @@ class PID():
         self.iterm = 0
         self.lastErr = 0
 
-	def reset(self):
-		self.lastNow = datetime.datetime.now()
+    def reset(self):
+        self.lastNow = datetime.datetime.now()
         self.iterm = 0
         self.lastErr = 0
 
