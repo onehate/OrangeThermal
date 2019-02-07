@@ -86,7 +86,7 @@ PWM_PeriodMax_s = 90
 heat1adj = 0		# heater 1 PWM offset, in percent
 heat2adj = 0		# heater 2 PWM offset, in percent
 
-# Profile Adjustments for Kilns
+### Profile Adjustments for Kilns
 # must_hit_temp adjusts for systems where the heater might not be able to keep up with the profile
 # If false, the system will not adjust the timing of the profile
 # If true, the system is guaranteed to hit the temperatures of the profile. It will wait until

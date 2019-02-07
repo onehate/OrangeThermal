@@ -204,10 +204,11 @@ class Oven (threading.Thread):
                 log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
                          (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime,
                           self.totaltime))
-                self.target = self.profile.get_target_temperature(self.runtime)
+                self.target = self.profile.get_target_temperature(self.runtime, self.temp_sensor.temperature)
                 pid = self.pid.compute(self.target, self.temp_sensor.temperature)
 
                 ##Should we store the current run time in case of power failure?
+                ##Add to future release
 
                 log.info("pid: %.3f" % pid)
 
@@ -254,7 +255,7 @@ class Oven (threading.Thread):
 
 
             #Do these regardless of the machine state
-            if self.heat != 0:
+            if self.heat > 0:
                 self.PWM.setHeat1(self.heat + config.heat1adj)
                 self.PWM.setHeat2(self.heat + config.heat2adj)
             else:
