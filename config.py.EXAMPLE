@@ -13,8 +13,9 @@ listening_ip = "0.0.0.0"
 listening_port = 8081
 
 ### Cost Estimate
-kwh_rate        = 0.26  # Rate in currency_type to calculate cost to run job
-currency_type   = "EUR"   # Currency Symbol to show when calculating cost to run job
+kwh_rate        = 0.10  # Rate in currency_type to calculate cost to run job
+currency_type   = "USD"   # Currency Symbol to show when calculating cost to run job
+oven_power      = 5000  # Average watts consumed by oven while running
 
 ########################################################################
 #

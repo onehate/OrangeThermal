@@ -563,7 +563,8 @@ class Profile():
             (prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
             newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]-prev_prev_point[0])
 
-            prev_point[1] = prev_point[1]-config.cone_slope_adj/3600 * (oldslope-newslope)
+            #Calculation of new endpoint: old endpoint - change in slope(C/hr) * cone adj rate (C / (C/hr))
+            prev_point[1] = prev_point[1]- (config.cone_slope_adj/3600) * (oldslope-newslope)
 
             return prev_point[1]
 
