@@ -69,12 +69,12 @@ class Oven (threading.Thread):
     STATE_RUNNING = "RUNNING"
     STATE_TUNING = "TUNING"
 
-    def __init__(self, simulate=False, time_step=config.sensor_time_wait):
+    def __init__(self, simulate=False, time_step=config.sensor_read_period):
         threading.Thread.__init__(self)
         self.daemon = True
         self.simulate = simulate
         self.time_step = time_step
-        self.reset()
+        #self.reset()
         if simulate:
             self.temp_sensor = TempSensorSimulate(self, 0.5, self.time_step)
         if sensor_available:
@@ -84,11 +84,12 @@ class Oven (threading.Thread):
                                                   self.time_step,
                                                   self.time_step)
         self.temp_sensor.start()
-        self.PWM = PWM(self, config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
+        self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
         self.PWM.start()
         self.start()
         self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
         self.heat = 0
+        self.reset()
 
     def reset(self):
         self.profile = None
@@ -100,7 +101,8 @@ class Oven (threading.Thread):
         self.heat = 0
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
-        self.set_heat(0)
+        self.PWM.setHeat1(0)
+        self.PWM.setHeat2(0)
         self.set_cool(False)
         self.set_air(False)
         self.pid.reset()
@@ -309,12 +311,15 @@ class Oven (threading.Thread):
 class PWM(threading.Thread):
     def __init__(self, Period_s, MinimumOnOff_s, PeriodMax_s):
         threading.Thread.__init__(self)
-        self.PeriodSet = PWM_Period_s
+        self.PeriodSet = Period_s
         self.MinimumOnOff = MinimumOnOff_s
         self.PeriodMax = PeriodMax_s
         self.Heat1 = 0
-
+        self.Heat2 = 0
         self.lock = threading.Lock()
+        self.period = 1
+        self.heat1On = 0
+        self.heat2On = 0
 
     def setHeat1(self, newPWM):
         self.Heat1 = sorted((0, newPWM, 1))[1]
@@ -345,7 +350,7 @@ class PWM(threading.Thread):
             else:
                 heat1ontime = period
 
-        with lock:
+        with self.lock:
             self.period = period
             self.heat1On = heat1ontime
             h2 = self.Heat2 * period
@@ -365,7 +370,7 @@ class PWM(threading.Thread):
             start = datetime.datetime.now()
             #grab our values here in case they change mid-period
             #Using a lock to prevent values being acquired while they're changed
-            with lock:
+            with self.lock:
                 pwmperiod = self.period
                 pwmheat1 = self.heat1On
                 pwmheat2 = self.heat2On
@@ -381,17 +386,17 @@ class PWM(threading.Thread):
                 if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
                 #When sleeping here, need to check that the required time has not already elapsed
-                t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).totalseconds
+                t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).total_seconds()
                 if t > 0: time.sleep(t)
                 if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
             else:										#Otherwise, 2 turns on before 1 turns off
                 time.sleep(pwmperiod - pwmheat2)
                 if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-                t = pwmheat1 - (datetime.datetime.now()-start).totalseconds
+                t = pwmheat1 - (datetime.datetime.now()-start).total_seconds()
                 if t > 0: time.sleep(t)
                 if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
-            t = pwmperiod - (datetime.datetime.now()-start).totalseconds
+            t = pwmperiod - (datetime.datetime.now()-start).total_seconds()
             if t > 0: time.sleep(t)
             if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
