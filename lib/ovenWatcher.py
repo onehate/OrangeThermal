@@ -29,7 +29,7 @@ class OvenWatcher(threading.Thread):
             self.log_skip_counter = (self.log_skip_counter +1)%20
             time.sleep(self.oven.time_step)
     
-    def record(self, profile):
+    def record(self, profile = None):
         self.last_profile = profile
         self.last_log = []
         self.started = datetime.datetime.now()

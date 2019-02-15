@@ -81,14 +81,15 @@ def handle_control():
                 simulated_oven = Oven(simulate=True, time_step=0.05)
                 simulation_watcher = OvenWatcher(simulated_oven)
                 simulation_watcher.add_observer(wsock)
-                #simulated_oven.run_profile(profile)
-                #simulation_watcher.record(profile)
+                simulated_oven.run_profile(profile)
+                simulation_watcher.record(profile)
             elif msgdict.get("cmd") == "STOP":
                 log.info("Stop command received")
                 oven.abort_run()
             elif msgdict.get("cmd") == "TUNE":
-				log.info("TUNE command received")
-				oven.run_tuning(500, 6)  #These parameters need to be settable
+                 log.info("TUNE command received")
+                 oven.run_tuning()
+                 ovenWatcher.record()
         except WebSocketError:
             break
     log.info("websocket (control) closed")

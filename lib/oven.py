@@ -91,6 +91,8 @@ class Oven (threading.Thread):
         self.heat = 0
         self.reset()
 
+
+
     def reset(self):
         self.profile = None
         self.start_time = 0
@@ -144,126 +146,136 @@ class Oven (threading.Thread):
         temperature_count = 0
         last_temp = 0
         pid = 0
-        now = datetime.datetime.now()
-        while True:
-            self.door = self.get_door_state()
+        with open("/home/pi/log.csv", "a") as log:
+            while True:
 
-            if self.state == Oven.STATE_TUNING:
-                #This algorithm is based off that used by Marlin (3-D printer control).
-                #It essentially measures the overshoot and undershoot when turning the heat on and off,
-                #Then applies some guideline formulas to come up with the K values
-                temp = self.temp_sensor.temperature
-                self.maxtemp = max(self.maxtemp, temp)
-                self.mintemp = min(self.mintemp, temp)
-                if self.heatOn and temp > self.target and (now - self.t2).total_seconds > 10.0:
-                    #These events occur once we swing over the temperature target
-                    #debounce: prevent noise from triggering false transition
-                                                            ##This might need to be longer for large systems
-                    self.heatOn = False
-                    self.heat = (self.bias - self.d)/2
-                    self.t1 = now
-                    self.t_high = (self.t1-self.t2).total_seconds
-                    self.maxtemp = temp
+                #Log Data:
+                log.write("{0},{1},{2},{3}\n".format(
+                    strftime("%Y-%m-%d %H:%M:%S"),
+                    str(self.temp_sensor.temperature),
+                    str(self.target),
+                    str(self.heat)))
 
-                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds > 10:
-                    #This occurs when we swing below the target
-                    self.heatOn = True
-                    t2 = now
-                    self.t_low = (self.t2-self.t1).total_seconds
-                    if self.cycles > 0:
-                        self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
-                        self.bias = sorted([5, self.bias, 80])[1]
-                        self.d = self.bias if self.bias < 50 else 99 - self.bias
-                        log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.mintemp, self.maxtemp)
-                    if self.cycles > 2:
-                        #Magic formulas:
-                        Ku = (4.0 * self.d)/ (math.pi * (self.maxtemp - self.mintemp) / 2)
-                        Tu = (self.t_low + self.t_high)
-                        log.info("Ku: %, Tu: %", Ku, Tu)
-                        Kp = 0.6 * Ku
-                        Ki = 2*Kp/Tu
-                        Kd = Kp * Tu/8
-                        log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
+                self.door = self.get_door_state()
+                now = datetime.datetime.now()
 
-                    self.heat = (self.bias + self.d)/2
-                    self.cycles= self.cycles + 1
-                    self.mintemp = self.target
-                    self.maxtemp = self.target
+                if self.state == Oven.STATE_TUNING:
+                    #This algorithm is based off that used by Marlin (3-D printer control).
+                    #It essentially measures the overshoot and undershoot when turning the heat on and off,
+                    #Then applies some guideline formulas to come up with the K values
+                    temp = self.temp_sensor.temperature
+                    self.maxtemp = max(self.maxtemp, temp)
+                    self.mintemp = min(self.mintemp, temp)
+                    if self.heatOn and temp > self.target and (now - self.t2).total_seconds > 10.0:
+                        #These events occur once we swing over the temperature target
+                        #debounce: prevent noise from triggering false transition
+                                                                ##This might need to be longer for large systems
+                        self.heatOn = False
+                        self.heat = (self.bias - self.d)/2
+                        self.t1 = now
+                        self.t_high = (self.t1-self.t2).total_seconds
+                        self.maxtemp = temp
 
-                if  self.cycles > self.tunecycles:
-                    self.PID.Kp = Kp
-                    self.PID.Ki = Ki
-                    self.PID.Kd = Kd
-                    log.info("Tuning Complete.")
-                    self.reset()
+                    if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds > 10:
+                        #This occurs when we swing below the target
+                        self.heatOn = True
+                        t2 = now
+                        self.t_low = (self.t2-self.t1).total_seconds
+                        if self.cycles > 0:
+                            self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
+                            self.bias = sorted([5, self.bias, 80])[1]
+                            self.d = self.bias if self.bias < 50 else 99 - self.bias
+                            log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.mintemp, self.maxtemp)
+                        if self.cycles > 2:
+                            #Magic formulas:
+                            Ku = (4.0 * self.d)/ (math.pi * (self.maxtemp - self.mintemp) / 2)
+                            Tu = (self.t_low + self.t_high)
+                            log.info("Ku: %, Tu: %", Ku, Tu)
+                            Kp = 0.6 * Ku
+                            Ki = 2*Kp/Tu
+                            Kd = Kp * Tu/8
+                            log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
 
-            if self.state == Oven.STATE_RUNNING:
-                if self.simulate: ##Probably just won't touch the simulation
-                    self.runtime += 0.5
-                else:
-                    runtime_delta = datetime.datetime.now() - self.start_time
-                    self.runtime = runtime_delta.total_seconds()
-                log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
-                         (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime,
-                          self.totaltime))
-                self.target = self.profile.get_target_temperature(self.runtime, self.temp_sensor.temperature)
-                pid = self.pid.compute(self.target, self.temp_sensor.temperature)
+                        self.heat = (self.bias + self.d)/2
+                        self.cycles= self.cycles + 1
+                        self.mintemp = self.target
+                        self.maxtemp = self.target
 
-                ##Should we store the current run time in case of power failure?
-                ##Add to future release
+                    if  self.cycles > self.tunecycles:
+                        self.PID.Kp = Kp
+                        self.PID.Ki = Ki
+                        self.PID.Kd = Kd
+                        log.info("Tuning Complete.")
+                        log.info("Make these values permanent by entering them in to the config.py file.")
+                        self.reset()
 
-                log.info("pid: %.3f" % pid)
+                if self.state == Oven.STATE_RUNNING:
+                    if self.simulate: ##Probably just won't touch the simulation
+                        self.runtime += 0.5
+                    else:
+                        runtime_delta = datetime.datetime.now() - self.start_time
+                        self.runtime = runtime_delta.total_seconds()
+                    log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
+                             (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime,
+                              self.totaltime))
+                    self.target = self.profile.get_target_temperature(self.runtime, self.temp_sensor.temperature)
+                    pid = self.pid.compute(self.target, self.temp_sensor.temperature)
 
-                self.set_cool(pid <= -1)
-                if(pid > 0):
-                    ##keep this... but double check that it won't cause false failure in large systems
-                    # The temp should be changing with the heat on
-                    # Count the number of time_steps encountered with no change and the heat on
-                    if last_temp == self.temp_sensor.temperature:
-                        temperature_count += 1 ##rename this variable
+                    ##Should we store the current run time in case of power failure?
+                    ##Add to future release
+
+                    log.info("pid: %.3f" % pid)
+
+                    self.set_cool(pid <= -1)
+                    if(pid > 0):
+                        ##keep this... but double check that it won't cause false failure in large systems
+                        # The temp should be changing with the heat on
+                        # Count the number of time_steps encountered with no change and the heat on
+                        if last_temp == self.temp_sensor.temperature:
+                            temperature_count += 1 ##rename this variable
+                        else:
+                            temperature_count = 0
+                        # If the heat is on and nothing is changing, reset
+                        # The direction or amount of change does not matter
+                        # This prevents runaway in the event of a sensor read failure
+                        if temperature_count > 100:
+                            log.info("Error reading sensor, oven temp not responding to heat.")
+                            self.reset()
                     else:
                         temperature_count = 0
-                    # If the heat is on and nothing is changing, reset
-                    # The direction or amount of change does not matter
-                    # This prevents runaway in the event of a sensor read failure
-                    if temperature_count > 100:
-                        log.info("Error reading sensor, oven temp not responding to heat.")
+
+
+                    last_temp = self.temp_sensor.temperature
+                    self.heat = pid
+
+
+                    #if self.profile.is_rising(self.runtime):
+                    #    self.set_cool(False)
+                    #    self.set_heat(self.temp_sensor.temperature < self.target)
+                    #else:
+                    #    self.set_heat(False)
+                    #    self.set_cool(self.temp_sensor.temperature > self.target)
+
+
+                    # if self.temp_sensor.temperature > 200:
+                        # self.set_air(False)
+                    # elif self.temp_sensor.temperature < 180:
+                        # self.set_air(True)
+
+                    if self.runtime >= self.totaltime:
                         self.reset()
+                else:  # Not tuning or running - make sure oven is off
+                    self.heat = 0
+
+
+                #Do these regardless of the machine state
+                if self.heat > 0:
+                    self.PWM.setHeat1(self.heat + config.heat1adj)
+                    self.PWM.setHeat2(self.heat + config.heat2adj)
                 else:
-                    temperature_count = 0
-
-
-                last_temp = self.temp_sensor.temperature
-                self.heat = pid
-
-
-                #if self.profile.is_rising(self.runtime):
-                #    self.set_cool(False)
-                #    self.set_heat(self.temp_sensor.temperature < self.target)
-                #else:
-                #    self.set_heat(False)
-                #    self.set_cool(self.temp_sensor.temperature > self.target)
-
-
-                # if self.temp_sensor.temperature > 200:
-                    # self.set_air(False)
-                # elif self.temp_sensor.temperature < 180:
-                    # self.set_air(True)
-
-                if self.runtime >= self.totaltime:
-                    self.reset()
-            else:
-                self.heat = 0
-
-
-            #Do these regardless of the machine state
-            if self.heat > 0:
-                self.PWM.setHeat1(self.heat + config.heat1adj)
-                self.PWM.setHeat2(self.heat + config.heat2adj)
-            else:
-                self.PWM.setHeat1(0)
-                self.PWM.setHeat2(0)
-            time.sleep(self.time_step)
+                    self.PWM.setHeat1(0)
+                    self.PWM.setHeat2(0)
+                time.sleep(self.time_step)
 
 
     def set_cool(self, value):
@@ -517,6 +529,8 @@ class Profile():
     def get_surrounding_points(self, time):
         if time > self.get_duration():
             return (self.data[-1], None)
+        elif time <= 0:
+            return (None, self.data[0])
 
         prev_point = None
         next_point = None

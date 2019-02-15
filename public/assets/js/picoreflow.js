@@ -47,7 +47,32 @@ function updateProfile(id)
 {
     selected_profile = id;
     selected_profile_name = profiles[id].name;
-    var job_seconds = profiles[id].data.length === 0 ? 0 : parseInt(profiles[id].data[profiles[id].data.length-1][0]);
+
+    //Get Units from Profile
+    time_scale_profile = profiles[id].TimeUnit;
+    time_scale_slope = time_scale_profile;
+    temp_scale = profiles[id].TempUnit;
+
+    if (temp_scale == "c") {temp_scale_display = "C";} else {temp_scale_display = "F";}
+    $('#act_temp_scale').html('º'+temp_scale_display);
+    $('#target_temp_scale').html('º'+temp_scale_display);
+
+    switch(time_scale_profile){
+        case "s":
+            time_scale_long = "Seconds";
+            break;
+        case "m":
+            time_scale_long = "Minutes";
+            break;
+        case "h":
+            time_scale_long = "Hours";
+            break;
+    }
+
+
+    var job_seconds = timeProfileFormatter(
+            profiles[id].data.length === 0 ? 0 : parseInt(profiles[id].data[profiles[id].data.length-1][0]),
+            false);
     var kwh = (oven_power*job_seconds/3600/1000).toFixed(2);
     var cost =  (kwh*kwh_rate).toFixed(2);
     var job_time = new Date(job_seconds * 1000).toISOString().substr(11, 8);
@@ -56,8 +81,7 @@ function updateProfile(id)
     $('#sel_prof_cost').html(kwh + ' kWh ('+ currency_type +': '+ cost +')');
     graph.profile.data = profiles[id].data;
     graph.plot = $.plot("#graph_container", [ graph.profile, graph.live ] , getOptions());
-	
-	//TODO: update units based on the loaded profile
+
 }
 
 function deleteProfile()
@@ -226,7 +250,8 @@ function runTuning()
 	{
 		"cmd": "TUNE"
 	}
-	
+	graph.live.data = [];
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live ] , getOptions());
 	ws_control.send(JSON.stringify(cmd));
 }
 

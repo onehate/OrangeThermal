@@ -1,0 +1,8 @@
+[Hour, Deg F]
+[0.0,  200] Initial target
+[2.0,  200] Preheat to 200 F for 2 hours, lid open
+[2.6,  250] Increase to 250 over .6 hours
+[5.1, 1000] Fast ramp to 1000
+[6.1, 1100] Slow down for transition
+[8.7, 1569] Prep for final ramp
+[11,  1819] Final Ramp - 108 degF / hr
