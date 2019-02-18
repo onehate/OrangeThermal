@@ -1,3 +1,4 @@
+
 import threading
 import time
 import random
@@ -146,18 +147,19 @@ class Oven (threading.Thread):
         temperature_count = 0
         last_temp = 0
         pid = 0
-        with open("/home/pi/log.csv", "a") as log:
+        with open("/home/pi/log.csv", "a") as filelog:
             while True:
-
+                
+                now = datetime.datetime.now()
                 #Log Data:
-                log.write("{0},{1},{2},{3}\n".format(
-                    strftime("%Y-%m-%d %H:%M:%S"),
+                filelog.write("{0},{1},{2},{3}\n".format(
+                    now.strftime("%Y-%m-%d %H:%M:%S"),
                     str(self.temp_sensor.temperature),
                     str(self.target),
                     str(self.heat)))
 
                 self.door = self.get_door_state()
-                now = datetime.datetime.now()
+                
 
                 if self.state == Oven.STATE_TUNING:
                     #This algorithm is based off that used by Marlin (3-D printer control).
