@@ -8,6 +8,7 @@ import json
 import bottle
 import gevent
 import geventwebsocket
+from geventwebsocket import WebSocketError
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 
@@ -173,6 +174,8 @@ def get_profiles():
     except:
         profile_files = []
     profiles = []
+    #Filter to only using json files
+    profile_files = [fi for fi in profile_files if fi.endswith(".json")]
     for filename in profile_files:
         with open(os.path.join(profile_path, filename), 'r') as f:
             profiles.append(json.load(f))

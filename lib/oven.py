@@ -125,7 +125,7 @@ class Oven (threading.Thread):
         temp_target = config.tune_target_temp
         n_cycles = config.tune_cycles
 
-        log.info("Running auto-tune algorithm. Target: %.0f deg C, Cycles: %", temp_target, n_cycles);
+        log.info("Running auto-tune algorithm. Target: %.0f deg C, Cycles: %.0f", temp_target, n_cycles);
         self.state = Oven.STATE_TUNING
         self.start_time = datetime.datetime.now()
         self.heatOn = True
@@ -150,11 +150,11 @@ class Oven (threading.Thread):
             while True:
 
                 #Log Data:
-                log.write("{0},{1},{2},{3}\n".format(
+                log.write("{0},{:.2f},{:.1f},{:.1f}\n".format(
                     strftime("%Y-%m-%d %H:%M:%S"),
-                    str(self.temp_sensor.temperature),
-                    str(self.target),
-                    str(self.heat)))
+                    self.temp_sensor.temperature,
+                    self.target,
+                    self.heat))
 
                 self.door = self.get_door_state()
                 now = datetime.datetime.now()
@@ -185,7 +185,7 @@ class Oven (threading.Thread):
                             self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
                             self.bias = sorted([5, self.bias, 80])[1]
                             self.d = self.bias if self.bias < 50 else 99 - self.bias
-                            log.info("bias: %, d: %, min: %, max: %", self.bias, self.d, self.mintemp, self.maxtemp)
+                            log.info("bias: %.0f, d: %.0f, min: %.0f, max: %.0f", self.bias, self.d, self.mintemp, self.maxtemp)
                         if self.cycles > 2:
                             #Magic formulas:
                             Ku = (4.0 * self.d)/ (math.pi * (self.maxtemp - self.mintemp) / 2)
@@ -194,7 +194,7 @@ class Oven (threading.Thread):
                             Kp = 0.6 * Ku
                             Ki = 2*Kp/Tu
                             Kd = Kp * Tu/8
-                            log.info("Kp: %, Ki: %, Kd = %", Kp, Ki, Kd)
+                            log.info("Kp: %.2f, Ki: %.2f, Kd = %.2f", Kp, Ki, Kd)
 
                         self.heat = (self.bias + self.d)/2
                         self.cycles= self.cycles + 1
