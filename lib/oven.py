@@ -146,9 +146,10 @@ class Oven (threading.Thread):
         temperature_count = 0
         last_temp = 0
         pid = 0
-        with open("/home/pi/log.csv", "a") as log:
+        with open("/home/pi/log.csv", "a") as filelog:
             while True:
 
+                now = datetime.datetime.now()
                 #Log Data:
                 log.write("{0},{:.2f},{:.1f},{:.1f}\n".format(
                     strftime("%Y-%m-%d %H:%M:%S"),
@@ -157,7 +158,7 @@ class Oven (threading.Thread):
                     self.heat))
 
                 self.door = self.get_door_state()
-                now = datetime.datetime.now()
+
 
                 if self.state == Oven.STATE_TUNING:
                     #This algorithm is based off that used by Marlin (3-D printer control).
