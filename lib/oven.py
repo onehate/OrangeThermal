@@ -162,6 +162,12 @@ class Oven (threading.Thread):
 
 
             if self.state == Oven.STATE_TUNING:
+
+                log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
+                         (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door,
+                          self.runtime,
+                          self.totaltime))
+
                 #This algorithm is based off that used by Marlin (3-D printer control).
                 #It essentially measures the overshoot and undershoot when turning the heat on and off,
                 #Then applies some guideline formulas to come up with the K values
