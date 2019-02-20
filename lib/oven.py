@@ -70,7 +70,8 @@ class Oven (threading.Thread):
     STATE_TUNING = "TUNING"
 
     def __init__(self, simulate=False, time_step=config.sensor_read_period):
-        threading.Thread.__init__(self, daemon=True)
+        threading.Thread.__init__(self)
+        self.daemon=True
         self.simulate = simulate
         self.time_step = time_step
         #self.reset()
@@ -151,7 +152,7 @@ class Oven (threading.Thread):
             now = datetime.datetime.now()
             #Log Data:
             with open("/home/pi/log_{0}.csv".format(now.strftime("%Y-%m-%d")), "a") as filelog:
-                filelog.write("{0},{:.2f},{:.1f},{:.1f}\n".format(
+                filelog.write("{0},{1:.2f},{2:.1f},{3:.1f}\n".format(
                     now.strftime("%Y-%m-%d,%H:%M:%S"),
                     self.temp_sensor.temperature,
                     self.target,
@@ -211,7 +212,7 @@ class Oven (threading.Thread):
                     self.reset()
                     continue
 
-            if self.state == Oven.STATE_RUNNING:
+            elif self.state == Oven.STATE_RUNNING:
                 if self.simulate: ##Probably just won't touch the simulation
                     self.runtime += 0.5
                 else:
@@ -326,7 +327,8 @@ class Oven (threading.Thread):
 
 class PWM(threading.Thread):
     def __init__(self, Period_s, MinimumOnOff_s, PeriodMax_s):
-        threading.Thread.__init__(self, daemon=True)
+        threading.Thread.__init__(self)
+        self.daemon = True
         self.PeriodSet = Period_s
         self.MinimumOnOff = MinimumOnOff_s
         self.PeriodMax = PeriodMax_s
@@ -422,7 +424,8 @@ class PWM(threading.Thread):
 
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
-        threading.Thread.__init__(self, daemon=True)
+        threading.Thread.__init__(self)
+        self.daemon=True
         self.temperature = 0
         self.time_step = time_step
 
