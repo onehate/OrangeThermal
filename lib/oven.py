@@ -130,9 +130,9 @@ class Oven (threading.Thread):
         self.start_time = datetime.datetime.now()
         self.heatOn = True
         self.heat = 0.5       ##Marlin starts at 50%. What happens if this isn't enough to hit the target?
-        self.bias = self.heat
+        self.bias = 50
         self.tunecycles = n_cycles
-        self.d = self.heat
+        self.d = 50
         self.target = temp_target
         self.totaltime = n_cycles * 1000        #Just an estimate; no good way to fill this in
         self.cycles = 0
@@ -140,6 +140,8 @@ class Oven (threading.Thread):
         self.mintemp = 10000
         self.t1 = datetime.datetime.now()   #t1 is when the temp goes over target
         self.t2 = self.t1                   #t2 is when it goes under
+        self.t_high = 0
+        self.t_low = 0
         log.info("Starting")
 
     def run(self):
@@ -150,6 +152,7 @@ class Oven (threading.Thread):
         while True:
 
             now = datetime.datetime.now()
+            
             #Log Data:
             with open("/home/pi/log_{0}.csv".format(now.strftime("%Y-%m-%d")), "a") as filelog:
                 filelog.write("{0},{1:.2f},{2:.1f},{3:.1f}\n".format(
@@ -167,52 +170,52 @@ class Oven (threading.Thread):
                          (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door,
                           self.runtime,
                           self.totaltime))
-
+                self.runtime = (now-self.start_time).total_seconds()
                 #This algorithm is based off that used by Marlin (3-D printer control).
                 #It essentially measures the overshoot and undershoot when turning the heat on and off,
                 #Then applies some guideline formulas to come up with the K values
                 temp = self.temp_sensor.temperature
                 self.maxtemp = max(self.maxtemp, temp)
                 self.mintemp = min(self.mintemp, temp)
-                if self.heatOn and temp > self.target and (now - self.t2).total_seconds > 10.0:
+                if self.heatOn and temp > self.target and (now - self.t2).total_seconds() > 45.0:
                     #These events occur once we swing over the temperature target
                     #debounce: prevent noise from triggering false transition
                                                             ##This might need to be longer for large systems
                     self.heatOn = False
-                    self.heat = (self.bias - self.d)/2
+                    self.heat = (self.bias - self.d)/2/100
                     self.t1 = now
-                    self.t_high = (self.t1-self.t2).total_seconds
+                    self.t_high = (self.t1-self.t2).total_seconds()
                     self.maxtemp = temp
 
-                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds > 10:
+                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds() > 45:
                     #This occurs when we swing below the target
                     self.heatOn = True
-                    t2 = now
-                    self.t_low = (self.t2-self.t1).total_seconds
+                    self.t2 = now
+                    self.t_low = (self.t2-self.t1).total_seconds()
                     if self.cycles > 0:
                         self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
-                        self.bias = sorted([5, self.bias, 80])[1]
+                        self.bias = sorted([10, self.bias, 80])[1]
                         self.d = self.bias if self.bias < 50 else 99 - self.bias
                         log.info("bias: %.0f, d: %.0f, min: %.0f, max: %.0f", self.bias, self.d, self.mintemp, self.maxtemp)
                     if self.cycles > 2:
                         #Magic formulas:
                         Ku = (4.0 * self.d)/ (math.pi * (self.maxtemp - self.mintemp) / 2)
                         Tu = (self.t_low + self.t_high)
-                        log.info("Ku: %, Tu: %", Ku, Tu)
+                        log.info("Ku: %.6f, Tu: %.6f", Ku, Tu)
                         Kp = 0.6 * Ku
                         Ki = 2*Kp/Tu
                         Kd = Kp * Tu/8
-                        log.info("Kp: %.2f, Ki: %.2f, Kd = %.2f", Kp, Ki, Kd)
+                        log.info("Kp: %.8f, Ki: %.8f, Kd = %.8f", Kp, Ki, Kd)
 
-                    self.heat = (self.bias + self.d)/2
+                    self.heat = (self.bias + self.d)/2/100
                     self.cycles= self.cycles + 1
                     self.mintemp = self.target
                     self.maxtemp = self.target
 
                 if  self.cycles > self.tunecycles:
-                    self.PID.Kp = Kp
-                    self.PID.Ki = Ki
-                    self.PID.Kd = Kd
+                    self.pid.Kp = Kp
+                    self.pid.Ki = Ki
+                    self.pid.Kd = Kd
                     log.info("Tuning Complete.")
                     log.info("Make these values permanent by entering them in to the config.py file.")
                     self.reset()
@@ -527,11 +530,17 @@ class Profile():
 
         self.tempunit = obj["TempUnit"]
         self.timeunit = obj["TimeUnit"]
+        log.debug(self.tempunit)
+        log.debug(self.timeunit)
 
         #Convert these to seconds/Celsius
-        tconv = 60 if (self.tempunit == "m") else 3600 if (self.tempunit == "h") else 1
+        tconv = 60 if (self.timeunit == "m") else 3600 if (self.timeunit == "h") else 1
         self.data[:][0] = [i * tconv for i in self.data[:][0]]
-        if self.tempunit == "f": 	self.data[:][1] = [(i - 32) / 1.8 for i in self.data[:][1]]
+        if self.tempunit == "f":
+            log.info("Converting from Farenheit")
+            for dat in self.data:
+                dat[1] = (dat[1] -32) / 1.8
+            #self.data[:][1] = [(i - 32) / 1.8 for i in self.data[:][1]]
         #elif self.tempunit == "Kelvin": 	self.data[:][1] = [i - 273.15 for i in self.data[:][1]]
 
     def get_duration(self):
