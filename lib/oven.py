@@ -186,8 +186,9 @@ class Oven (threading.Thread):
                     self.t1 = now
                     self.t_high = (self.t1-self.t2).total_seconds()
                     self.maxtemp = temp
+                    log.info("Over Target, setting heat to %.2f", self.heat)
 
-                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds() > 45:
+                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds() > 45.0:
                     #This occurs when we swing below the target
                     self.heatOn = True
                     self.t2 = now
@@ -206,11 +207,14 @@ class Oven (threading.Thread):
                         Ki = 2*Kp/Tu
                         Kd = Kp * Tu/8
                         log.info("Kp: %.8f, Ki: %.8f, Kd = %.8f", Kp, Ki, Kd)
-
                     self.heat = (self.bias + self.d)/2/100
                     self.cycles= self.cycles + 1
+                    log.info(
+                        "Under Target, new values: d: %.2f, bias: %.2f, t_low: %.0f, t_high: %.0f, MaxT: %.0f, MinT: %.0f",
+                        self.d, self.bias, self.t_low, self.t_high, self.maxtemp, self.mintemp)
                     self.mintemp = self.target
                     self.maxtemp = self.target
+
 
                 if  self.cycles > self.tunecycles:
                     self.pid.Kp = Kp
