@@ -129,10 +129,10 @@ class Oven (threading.Thread):
         self.state = Oven.STATE_TUNING
         self.start_time = datetime.datetime.now()
         self.heatOn = True
-        self.heat = 0.5       ##Marlin starts at 50%. What happens if this isn't enough to hit the target?
-        self.bias = 50
+        self.heat = 0.8       ##Marlin starts at 50%. What happens if this isn't enough to hit the target?
+        self.bias = .4
         self.tunecycles = n_cycles
-        self.d = 50
+        self.d = .4
         self.target = temp_target
         self.totaltime = n_cycles * 1000        #Just an estimate; no good way to fill this in
         self.cycles = 0
@@ -174,6 +174,7 @@ class Oven (threading.Thread):
                 #This algorithm is based off that used by Marlin (3-D printer control).
                 #It essentially measures the overshoot and undershoot when turning the heat on and off,
                 #Then applies some guideline formulas to come up with the K values
+                #This is called the Relay Method
                 temp = self.temp_sensor.temperature
                 self.maxtemp = max(self.maxtemp, temp)
                 self.mintemp = min(self.mintemp, temp)
@@ -182,7 +183,7 @@ class Oven (threading.Thread):
                     #debounce: prevent noise from triggering false transition
                                                             ##This might need to be longer for large systems
                     self.heatOn = False
-                    self.heat = (self.bias - self.d)/2/100
+                    self.heat = (self.bias - self.d)
                     self.t1 = now
                     self.t_high = (self.t1-self.t2).total_seconds()
                     self.maxtemp = temp
@@ -195,8 +196,8 @@ class Oven (threading.Thread):
                     self.t_low = (self.t2-self.t1).total_seconds()
                     if self.cycles > 0:
                         self.bias = self.bias + (self.d * (self.t_high - self.t_low))/(self.t_low + self.t_high)
-                        self.bias = sorted([10, self.bias, 80])[1]
-                        self.d = self.bias if self.bias < 50 else 99 - self.bias
+                        self.bias = sorted([0.10, self.bias, 0.90])[1]
+                        self.d = self.bias if self.bias < 0.50 else 1 - self.bias
                         log.info("bias: %.0f, d: %.0f, min: %.0f, max: %.0f", self.bias, self.d, self.mintemp, self.maxtemp)
                     if self.cycles > 2:
                         #Magic formulas:
@@ -207,7 +208,7 @@ class Oven (threading.Thread):
                         Ki = 2*Kp/Tu
                         Kd = Kp * Tu/8
                         log.info("Kp: %.8f, Ki: %.8f, Kd = %.8f", Kp, Ki, Kd)
-                    self.heat = (self.bias + self.d)/2/100
+                    self.heat = (self.bias + self.d)
                     self.cycles= self.cycles + 1
                     log.info(
                         "Under Target, new values: d: %.2f, bias: %.2f, t_low: %.0f, t_high: %.0f, MaxT: %.0f, MinT: %.0f",
@@ -590,7 +591,7 @@ class Profile():
         #if we haven't reached the last target, delay until we do
         #check that we were going up and that we're not there yet
 
-        if config.must_hit_temp and self.is_rising(prev_point[0]) and currtemp < prev_point[1]:
+        if config.must_hit_temp and self.is_rising(prev_point[0]) and currtemp < (prev_point[1]-3):
 
             #in this case, modify our profile to push the timing out
             delay = time - prev_point[0]
@@ -623,13 +624,13 @@ class Profile():
 
 
 class PID():
-    def __init__(self, ki=1, kp=1, kd=1):
+    def __init__(self, ki=1.0, kp=1.0, kd=1.0):
         self.ki = ki
         self.kp = kp
         self.kd = kd
         self.lastNow = datetime.datetime.now()
-        self.iterm = 0
-        self.lastErr = 0
+        self.iterm = 0.0
+        self.lastErr = 0.0
 
     def reset(self):
         self.lastNow = datetime.datetime.now()
@@ -642,7 +643,7 @@ class PID():
 
         error = float(setpoint - ispoint)
         self.iterm += (error * timeDelta * self.ki)
-        self.iterm = sorted([-1.1, self.iterm, 1.1])[1]
+        self.iterm = sorted([-0.5, self.iterm, 0.5])[1]
         dErr = (error - self.lastErr) / timeDelta
 
         output = self.kp * error + self.iterm + self.kd * dErr
