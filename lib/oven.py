@@ -7,6 +7,9 @@ import json
 import config
 import math
 
+#Include to guarantee that division will produce a floating-point value in Python 2.x
+from __future__ import division
+
 
 log = logging.getLogger(__name__)
 
@@ -600,13 +603,14 @@ class Profile():
             (prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
             oldslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]-prev_prev_point[0])
 
-            self.data[index:][0] = [t + delay for t in self.data[index:][0]]
+            for P in self.data[index:]:
+                P[0] = P[0] + delay
 
             #Reduce the target setpoint
             #Determine original slope
             #Determine new slope
-            (prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
-            newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]-prev_prev_point[0])
+            #(prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
+            newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]+delay-prev_prev_point[0])
 
             #Calculation of new endpoint: old endpoint - change in slope(C/hr) * cone adj rate (C / (C/hr))
             prev_point[1] = prev_point[1]- (config.cone_slope_adj/3600) * (oldslope-newslope)

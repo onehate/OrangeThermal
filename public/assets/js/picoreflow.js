@@ -527,6 +527,7 @@ $(document).ready(function()
             if (temp_scale == "f")
             {
                 x.temperature = (x.temperature * 9/5) + 32;
+                x.target = (x.target * 9/5) + 32;
             }
             if (time_scale_profile == "m")
             {
