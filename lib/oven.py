@@ -471,9 +471,12 @@ class TempSensorReal(TempSensor):
 
     def run(self):
         while True:
+            lasttemp = 0
             try:
                 self.temperature = self.thermocouple.get()
+                lasttemp = self.temperature
             except Exception:
+                self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
 
@@ -553,6 +556,7 @@ class Profile():
                 dat[1] = (dat[1] -32) / 1.8
             #self.data[:][1] = [(i - 32) / 1.8 for i in self.data[:][1]]
         #elif self.tempunit == "Kelvin": 	self.data[:][1] = [i - 273.15 for i in self.data[:][1]]
+        self.targethit = [False] * len(self.data)
 
     def get_duration(self):
         return max([t for (t, x) in self.data])
@@ -593,37 +597,48 @@ class Profile():
     def get_target_temperature(self, time, currtemp = 10000):
 
         (prev_point, next_point) = self.get_surrounding_points(time)
+        index = self.get_index_of_time(prev_point[0])
 
-        #if we haven't reached the last target, delay until we do
-        #check that we were going up and that we're not there yet
+        #The following algorithm does two things, intended for kiln firing:
+            #1: Guarentees that the target temperature has been reached before continuing
+            #2: Adjusts the target temperature in the event that the slope is less than expected
+                #This adjustment is to maintain constant heat soaking
 
-        if config.must_hit_temp and self.is_rising(prev_point[0]) and currtemp < (prev_point[1]-3):
+        #This is only enabled if must_hit_temp is set. Check if previous target has been hit already
+        if config.must_hit_temp and not self.targethit[index]:
 
-            #in this case, modify our profile to push the timing out
-            delay = time - prev_point[0]
-            index = self.get_index_of_time(prev_point[0])
+            if self.is_rising(prev_point[0]) and currtemp > (prev_point[1]-5):
+                #If not, see if we just hit it now
+                self.targethit[index] = True
+            elif not self.is_rising(prev_point[0]):
+                #if temperature was going down, don't worry about it
+                self.targethit[index] = True
 
-            (prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
-            oldslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]-prev_prev_point[0])
+            else:
+                #in this case, modify our profile to push the timing out
+                delay = time - prev_point[0]
 
-            for P in self.data[index:]:
-                P[0] = P[0] + delay
+                (prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
 
-            #Reduce the target setpoint
-            #Determine original slope
-            #Determine new slope
-            #(prev_prev_point, prev_point) = self.get_surrounding_points(prev_point[0])
-            newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]+delay-prev_prev_point[0])
+                #Push the previous target and all future targets out in time
+                for P in self.data[index:]:
+                    P[0] = P[0] + delay
 
-            #Calculation of new endpoint: old endpoint - change in slope(C/hr) * cone adj rate (C / (C/hr))
-            self.data[index][1]  = prev_point[1]- (config.cone_slope_adj*3600) * (oldslope-newslope)
+                #Reduce the target setpoint
+                #Determine original slope
+                #Determine new slope
+                oldslope = (prev_point[1] - prev_prev_point[1]) / (prev_point[0] - prev_prev_point[0])
+                newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]+delay-prev_prev_point[0])
 
-            log.debug("prev_prev_point: %.2f, %.2f, prev_point: %.2f, %.2f, old slope: %.8f, new slope: %.8f, index: %.0f",
-                prev_prev_point[0], prev_prev_point[1],
-                prev_point[0], prev_point[1],
-                oldslope, newslope, index)
+                #Calculation of new endpoint: old endpoint - change in slope(C/hr) * cone adj rate (C / (C/hr))
+                self.data[index][1]  = prev_point[1]- (config.cone_slope_adj*3600.0) * (oldslope-newslope)
 
-            return self.data[index][1]
+                log.debug("prev_prev_point: %.2f, %.2f, prev_point: %.2f, %.2f, old slope: %.8f, new slope: %.8f, index: %.0f",
+                    prev_prev_point[0], prev_prev_point[1],
+                    prev_point[0], prev_point[1],
+                    oldslope, newslope, index)
+
+                return self.data[index][1]
 
         if time > self.get_duration():
             return 0
@@ -643,6 +658,7 @@ class PID():
         self.lastNow = datetime.datetime.now()
         self.iterm = 0.0
         self.lastErr = 0.0
+        self.dErr = 0
 
     def reset(self):
         self.lastNow = datetime.datetime.now()
@@ -654,11 +670,16 @@ class PID():
         timeDelta = (now - self.lastNow).total_seconds()
 
         error = float(setpoint - ispoint)
-        self.iterm += (error * timeDelta * self.ki)
-        self.iterm = sorted([-0.5, self.iterm, 0.5])[1]
-        dErr = (error - self.lastErr) / timeDelta
+        #Smooth out the dErr by running it through a simple filter
+        self.dErr = (((error - self.lastErr) / timeDelta) + self.dErr) / 2
 
-        output = self.kp * error + self.iterm + self.kd * dErr
+        #Integral anti-windup: Only enable the integrator if the error is small enough
+        if (self.kp * error + self.kd * self.dErr) < 2:
+            self.iterm += (error * timeDelta * self.ki)
+            self.iterm = sorted([0.0, self.iterm, 1.0])[1] #Keep iterm in control boundary
+
+
+        output = self.kp * error + self.iterm + self.kd * self.dErr
         #output = sorted([-1, output, 1])[1] #allow values to exceed 100%
         self.lastErr = error
         self.lastNow = now

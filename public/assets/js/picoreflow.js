@@ -522,6 +522,7 @@ $(document).ready(function()
         ws_status.onmessage = function(e)
         {
             x = JSON.parse(e.data);
+            var adjruntime = x.runtime;
 
             //Convert to expected units
             if (temp_scale == "f")
@@ -531,10 +532,10 @@ $(document).ready(function()
             }
             if (time_scale_profile == "m")
             {
-                x.runtime = x.runtime / 60;
+                adjruntime = adjruntime / 60;
             } else if (time_scale_profile == "h")
             {
-                x.runtime = x.runtime / 3600;
+                adjruntime = adjruntime / 3600;
             }
 
 
@@ -585,7 +586,7 @@ $(document).ready(function()
                     $("#nav_start").hide();
                     $("#nav_stop").show();
 
-                    graph.live.data.push([x.runtime, x.temperature]);
+                    graph.live.data.push([adjruntime, x.temperature]);
                     graph.plot = $.plot("#graph_container", [ graph.profile, graph.live ] , getOptions());
 
                     left = parseInt(x.totaltime-x.runtime);
