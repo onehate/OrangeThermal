@@ -1,3 +1,6 @@
+#Include to guarantee that division will produce a floating-point value in Python 2.x
+from __future__ import division
+
 import threading
 import time
 import random
@@ -7,8 +10,6 @@ import json
 import config
 import math
 
-#Include to guarantee that division will produce a floating-point value in Python 2.x
-from __future__ import division
 
 
 log = logging.getLogger(__name__)
@@ -543,7 +544,9 @@ class Profile():
 
         #Convert these to seconds/Celsius
         tconv = 60 if (self.timeunit == "m") else 3600 if (self.timeunit == "h") else 1
-        self.data[:][0] = [i * tconv for i in self.data[:][0]]
+        #self.data[:][0] = [i * tconv for i in self.data[:][0]]
+        for dat in self.data:
+            dat[0]=dat[0] * tconv
         if self.tempunit == "f":
             log.info("Converting from Farenheit")
             for dat in self.data:
@@ -613,9 +616,14 @@ class Profile():
             newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]+delay-prev_prev_point[0])
 
             #Calculation of new endpoint: old endpoint - change in slope(C/hr) * cone adj rate (C / (C/hr))
-            prev_point[1] = prev_point[1]- (config.cone_slope_adj/3600) * (oldslope-newslope)
+            self.data[index][1]  = prev_point[1]- (config.cone_slope_adj*3600) * (oldslope-newslope)
 
-            return prev_point[1]
+            log.debug("prev_prev_point: %.2f, %.2f, prev_point: %.2f, %.2f, old slope: %.8f, new slope: %.8f, index: %.0f",
+                prev_prev_point[0], prev_prev_point[1],
+                prev_point[0], prev_point[1],
+                oldslope, newslope, index)
+
+            return self.data[index][1]
 
         if time > self.get_duration():
             return 0
