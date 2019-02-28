@@ -25,7 +25,7 @@ class MAX31855SPI(object):
             raise MAX31855Error('Short to VCC')
         elif state['fault']:
             raise MAX31855Error('Unknown Error')
-        return self.max31855.readLinearizedTempC()
+        return self.max31855.readTempC()
 
 
 class MAX31855SPIError(Exception):
