@@ -170,7 +170,7 @@ class Oven (threading.Thread):
 
             if self.state == Oven.STATE_TUNING:
 
-                log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
+                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
                          (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door,
                           self.runtime,
                           self.totaltime))
@@ -236,7 +236,7 @@ class Oven (threading.Thread):
                 else:
                     runtime_delta = datetime.datetime.now() - self.start_time
                     self.runtime = runtime_delta.total_seconds()
-                log.info("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
+                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
                          (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime,
                           self.totaltime))
                 self.target = self.profile.get_target_temperature(self.runtime, self.temp_sensor.temperature)
@@ -259,7 +259,7 @@ class Oven (threading.Thread):
                     # If the heat is on and nothing is changing, reset
                     # The direction or amount of change does not matter
                     # This prevents runaway in the event of a sensor read failure
-                    if temperature_count > 100:
+                    if temperature_count > 30:
                         log.info("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
                         continue
@@ -470,8 +470,9 @@ class TempSensorReal(TempSensor):
             self.thermocouple = MAX31855SPI(spi_dev=SPI.SpiDev(port=0, device=config.spi_sensor_chip_id))
 
     def run(self):
+        lasttemp = 0
+
         while True:
-            lasttemp = 0
             try:
                 self.temperature = self.thermocouple.get()
                 lasttemp = self.temperature
@@ -646,6 +647,7 @@ class Profile():
 
 
         incl = float(next_point[1] - prev_point[1]) / float(next_point[0] - prev_point[0])
+        if math.isnan(incl): incl = 0
         temp = prev_point[1] + (time - prev_point[0]) * incl
         return temp
 
@@ -670,9 +672,11 @@ class PID():
         timeDelta = (now - self.lastNow).total_seconds()
 
         error = float(setpoint - ispoint)
+
         #Smooth out the dErr by running it through a simple filter
         self.dErr = (((error - self.lastErr) / timeDelta) + self.dErr) / 2
-
+        if math.isnan(self.dErr): self.dErr = 0
+        if self.kd != 0: self.dErr = sorted([-2/self.kd, self.dErr, -2/self.kd],2)
         #Integral anti-windup: Only enable the integrator if the error is small enough
         if (self.kp * error + self.kd * self.dErr) < 2:
             self.iterm += (error * timeDelta * self.ki)
