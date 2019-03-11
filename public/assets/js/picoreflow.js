@@ -235,6 +235,23 @@ function runTask()
     {
         "cmd": "RUN",
         "profile": profiles[selected_profile]
+        "resume": false
+    }
+
+    graph.live.data = [];
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live ] , getOptions());
+
+    ws_control.send(JSON.stringify(cmd));
+
+}
+
+function runTaskResume()
+{
+    var cmd =
+    {
+        "cmd": "RUN",
+        "profile": profiles[selected_profile]
+        "resume": true
     }
 
     graph.live.data = [];

@@ -72,7 +72,8 @@ def handle_control():
                 if profile_obj:
                     profile_json = json.dumps(profile_obj)
                     profile = Profile(profile_json)
-                oven.run_profile(profile)
+                do_resume = msgdict.get('resume')
+                oven.run_profile(profile, do_resume)
                 ovenWatcher.record(profile)
             elif msgdict.get("cmd") == "SIMULATE":
                 log.info("SIMULATE command received")

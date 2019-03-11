@@ -113,12 +113,17 @@ class Oven (threading.Thread):
         self.set_air(False)
         self.pid.reset()
 
-    def run_profile(self, profile):
+    def run_profile(self, profile, resume = False):
         log.info("Running profile %s" % profile.name)
         self.profile = profile
         self.totaltime = profile.get_duration()
+        if resume:
+            progress = self.profile.findTemp(self.temp_sensor.temperature)
+            self.start_time = datetime.datetime.now() - progress
+            log.info("Skipping ahead to %s", str(progress))
+        else:
+            self.start_time = datetime.datetime.now()
         self.state = Oven.STATE_RUNNING
-        self.start_time = datetime.datetime.now()
         self.pid.reset()
         log.info("Starting")
 
@@ -594,6 +599,26 @@ class Profile():
             return prev_point[1] < next_point[1]
         else:
             return False
+
+    ## findTemp - Returns the first time in the profile where the target temperature is
+    ## equal to the input temperature
+    def findTemp(self, temperature):
+        if temperature < self.data[0][1]:
+            return datetime.timedelta() #Start at the beginning
+        elif temperature > max([x for (t, x) in self.data]):
+            log.exception("Current temperature is higher than max profile point! Cannot resume.")
+            return None
+        else:
+            for index in range(1, len(self.data)):
+                if self.data[index][1] == temperature:
+                    return datetime.timedelta(seconds = self.data[index][0])
+                elif self.data[index][1] > temperature:
+                    slope = (self.data[index][0] - self.data[index-1][0]) / (self.data[index][1] - self.data[index-1][1])
+                    point = self.data[index-1][0] + slope * (temperature - self.data[index-1][1])
+                    return datetime.timedelta(seconds = point)
+                else:
+                    continue
+
 
     def get_target_temperature(self, time, currtemp = 10000):
 
