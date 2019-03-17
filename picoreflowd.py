@@ -94,6 +94,7 @@ def handle_control():
                  oven.run_tuning()
                  ovenWatcher.record()
         except WebSocketError:
+            log.info("Web socket error!")
             break
     log.info("websocket (control) closed")
 

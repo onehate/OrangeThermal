@@ -250,7 +250,7 @@ class Oven (threading.Thread):
                 ##Should we store the current run time in case of power failure?
                 ##Add to future release
 
-                log.info("pid: %.3f" % pid)
+                log.debug("pid: %.3f" % pid)
 
                 self.set_cool(pid <= -1)
                 if(pid > 0):
@@ -701,7 +701,7 @@ class PID():
         #Smooth out the dErr by running it through a simple filter
         self.dErr = (((error - self.lastErr) / timeDelta) + self.dErr) / 2
         if math.isnan(self.dErr): self.dErr = 0
-        if self.kd != 0: self.dErr = sorted([-2/self.kd, self.dErr, -2/self.kd],2)
+        if self.kd != 0: self.dErr = sorted([-2/self.kd, self.dErr, 2/self.kd])[1]
         #Integral anti-windup: Only enable the integrator if the error is small enough
         if (self.kp * error + self.kd * self.dErr) < 2:
             self.iterm += (error * timeDelta * self.ki)

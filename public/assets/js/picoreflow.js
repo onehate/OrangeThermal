@@ -234,8 +234,8 @@ function runTask()
     var cmd =
     {
         "cmd": "RUN",
-        "profile": profiles[selected_profile]
-        "resume": false
+        "profile": profiles[selected_profile],
+        "resume": "0"
     }
 
     graph.live.data = [];
@@ -250,8 +250,8 @@ function runTaskResume()
     var cmd =
     {
         "cmd": "RUN",
-        "profile": profiles[selected_profile]
-        "resume": true
+        "profile": profiles[selected_profile],
+        "resume": "1"
     }
 
     graph.live.data = [];
