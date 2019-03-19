@@ -650,19 +650,20 @@ class Profile():
                 for P in self.data[index:]:
                     P[0] = P[0] + delay
 
-                #Reduce the target setpoint
-                #Determine original slope
-                #Determine new slope
-                oldslope = (prev_point[1] - prev_prev_point[1]) / (prev_point[0] - prev_prev_point[0])
-                newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]+delay-prev_prev_point[0])
+                #Reduce the target setpoint - only if this is the max point
+                if self.data[index][1] >= max([x for (t, x) in self.data]):
+                    #Determine original slope
+                    #Determine new slope
+                    oldslope = (prev_point[1] - prev_prev_point[1]) / (prev_point[0] - prev_prev_point[0])
+                    newslope = (prev_point[1]-prev_prev_point[1]) / (prev_point[0]+delay-prev_prev_point[0])
 
-                #Calculation of new endpoint: old endpoint - change in slope(C/hr) * cone adj rate (C / (C/hr))
-                self.data[index][1]  = prev_point[1]- (config.cone_slope_adj*3600.0) * (oldslope-newslope)
+                    #Calculation of new endpoint: old endpoint - change in slope(C/hr) * cone adj rate (C / (C/hr))
+                    self.data[index][1]  = prev_point[1]- (config.cone_slope_adj*3600.0) * (oldslope-newslope)
 
-                log.debug("prev_prev_point: %.2f, %.2f, prev_point: %.2f, %.2f, old slope: %.8f, new slope: %.8f, index: %.0f",
-                    prev_prev_point[0], prev_prev_point[1],
-                    prev_point[0], prev_point[1],
-                    oldslope, newslope, index)
+                    log.debug("prev_prev_point: %.2f, %.2f, prev_point: %.2f, %.2f, old slope: %.8f, new slope: %.8f, index: %.0f",
+                        prev_prev_point[0], prev_prev_point[1],
+                        prev_point[0], prev_point[1],
+                        oldslope, newslope, index)
 
                 return self.data[index][1]
 
