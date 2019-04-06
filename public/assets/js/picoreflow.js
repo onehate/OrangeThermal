@@ -1,6 +1,6 @@
 var state = "IDLE";
 var state_last = "";
-var graph = [ 'profile', 'live', 'target'];
+var graph = [ 'profile', 'target', 'live'];
 var points = [];
 var profiles = [];
 var time_mode = 0;
@@ -88,7 +88,7 @@ function updateProfile(id)
     $('#sel_prof_eta').html(job_time);
     $('#sel_prof_cost').html(kwh + ' kWh ('+ currency_type +': '+ cost +')');
     graph.profile.data = profiles[id].data;
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
 }
 
@@ -114,7 +114,7 @@ function deleteProfile()
     $('#e2').select2('val', 0);
     graph.profile.points.show = false;
     graph.profile.draggable = false;
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ], getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ], getOptions());
 }
 
 
@@ -178,7 +178,7 @@ function updateProfileTable()
                 graph.profile.data[row][col] = value;
             }
             
-            graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ], getOptions());
+            graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ], getOptions());
             }
             updateProfileTable();
 
@@ -248,7 +248,7 @@ function runTask()
 
     graph.live.data = [];
     graph.target.data = [];
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
     ws_control.send(JSON.stringify(cmd));
 
@@ -264,7 +264,7 @@ function runTaskResume()
     }
 
     //    graph.live.data = [];
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
     ws_control.send(JSON.stringify(cmd));
 
@@ -278,7 +278,7 @@ function runTuning()
 	}
 	graph.live.data = [];
 	graph.target.data = [];
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 	ws_control.send(JSON.stringify(cmd));
 }
 
@@ -292,7 +292,7 @@ function runTaskSimulation()
 
     graph.live.data = [];
     graph.target.data = [];
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
     ws_control.send(JSON.stringify(cmd));
 
@@ -317,7 +317,7 @@ function enterNewMode()
     graph.profile.points.show = true;
     graph.profile.draggable = true;
     graph.profile.data = [];
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ], getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ], getOptions());
     updateProfileTable();
 }
 
@@ -332,7 +332,7 @@ function enterEditMode()
     $('#form_profile_name').val(profiles[selected_profile].name);
     graph.profile.points.show = true;
     graph.profile.draggable = true;
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ], getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ], getOptions());
     updateProfileTable();
 }
 
@@ -348,7 +348,7 @@ function leaveEditMode()
     $('#profile_table').slideUp();
     graph.profile.points.show = false;
     graph.profile.draggable = false;
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ], getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ], getOptions());
 }
 
 function newPoint()
@@ -362,14 +362,14 @@ function newPoint()
         var pointx = 0;
     }
     graph.profile.data.push([pointx, Math.floor((Math.random()*230)+25)]);
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ], getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ], getOptions());
     updateProfileTable();
 }
 
 function delPoint()
 {
     graph.profile.data.splice(-1,1)
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ], getOptions());
+    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ], getOptions());
     updateProfileTable();
 }
 
@@ -583,7 +583,7 @@ $(document).ready(function()
                 $.each(x.log, function(i,v) {
                     graph.live.data.push([adjruntime, v.temperature]);
                     graph.target.data.push([adjruntime, v.target]);
-                    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+                    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
                 });
             }
 
@@ -618,7 +618,7 @@ $(document).ready(function()
 
                     graph.live.data.push([adjruntime, x.temperature]);
                     graph.target.data.push([adjruntime, x.target]);
-                    graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+                    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
                     left = parseInt(x.totaltime-x.runtime);
                     eta = new Date(left * 1000).toISOString().substr(11, 8);
@@ -698,7 +698,7 @@ $(document).ready(function()
             console.log (e.data);
             x = JSON.parse(e.data);
             graph.live.data.push([x.runtime, x.temperature]);
-            graph.plot = $.plot("#graph_container", [ graph.profile, graph.live, graph.target ] , getOptions());
+            graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
         }
 

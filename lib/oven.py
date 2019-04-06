@@ -332,7 +332,7 @@ class Oven (threading.Thread):
             'temperature': self.temp_sensor.temperature,
             'target': self.target,
             'state': self.state,
-            'heat': self.heat,
+            'heat': sorted((0, self.heat, 1))[1],
             'cool': self.cool,
             'air': self.air,
             'totaltime': self.totaltime,
