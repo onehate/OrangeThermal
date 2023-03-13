@@ -41,8 +41,8 @@ except ImportError:
     sensor_available = False
 
 try:
-    import RPi.GPIO as GPIO
-    GPIO.setmode(GPIO.BCM)
+    import OPi.GPIO as GPIO #converted RPi to OPi
+    GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
     GPIO.setup(config.gpio_heat, GPIO.OUT) 	if config.heat_enabled else None
     GPIO.setup(config.gpio_heat2, GPIO.OUT) if config.heat2_enabled else None
@@ -55,7 +55,6 @@ except ImportError:
     msg = "Could not initialize GPIOs, oven operation will only be simulated!"
     log.warning(msg)
     gpio_available = False
-
 
 class Oven (threading.Thread):
     STATE_IDLE = "IDLE"
