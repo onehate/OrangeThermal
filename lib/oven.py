@@ -1,6 +1,3 @@
-#Include to guarantee that division will produce a floating-point value in Python 2.x
-from __future__ import division
-
 import threading
 import time
 import random
@@ -9,8 +6,6 @@ import logging
 import json
 import config
 import math
-
-
 
 log = logging.getLogger(__name__)
 
