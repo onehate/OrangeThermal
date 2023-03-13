@@ -16,5 +16,5 @@ The following was added for this branch of the fork
 
 * Works with Orange Pi Zero 2
 * Works with Phyton 3
-* Works with GPIO Board instaed of BCM
+* Works with GPIO Board instead of BCM
 * Deleted MAX6675 to concentrate on MAX31855 and MAX31856 (near future)
