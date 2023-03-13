@@ -1,5 +1,8 @@
-picoThermal is a fork off of picoReflow by [apollo-ng]. It is intended to make it more 
-versatile (suited for reflow oven or ceramic kiln) by adding several features:
+WORK IN PROGRESS!
+
+OrangeThermal is a fork off of picoThermal by [Petronator], which is a fork off of picoReflow by [apollo-ng]. It is intended to make it work on Orange Pi Zero 2 for PCB reflow ovens:
+
+The following is added by Petronator to the 
 
 * Ability to disable cooling, air, door sensor, etc.
 * Handling of two separate heaters
