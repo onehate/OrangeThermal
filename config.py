@@ -25,15 +25,15 @@ oven_power      = 2000  # Average watts consumed by oven while running
 
 ##Enabled outputs
 heat_enabled = True		# Enable control for heater
-heat2_enabled = True	# Enabled control for second heater
+heat2_enabled = False	# Enabled control for second heater
 cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
 
 ### Outputs
-gpio_heat = 11  # Switches zero-cross solid-state-relay
+gpio_heat = 11  # Switches zero-cross SSR
 gpio_heat2 = 12 # Second heater control
 gpio_cool = 10  # Regulates PWM for 12V DC Blower
-gpio_air  = 9   # Switches 0-phase det. solid-state-relay
+gpio_air  = 9   # Switches 0-phase det. SSR
 
 heater_invert = 0 # switches the polarity of the heater control
 
@@ -59,7 +59,7 @@ spi_sensor_chip_id = 0
 
 ### amount of time, in seconds, to wait between reads of the thermocouple
 # This is also the rate of the control loop?
-sensor_read_period = 1
+sensor_read_period = 0.5
 
 
 # PWM Settings
@@ -89,7 +89,7 @@ heat2adj = 0		# heater 2 PWM offset, in percent
 # If false, the system will not adjust the timing of the profile
 # If true, the system is guaranteed to hit the temperatures of the profile. It will wait until
 # the target is reached before moving to the next segment of the profile
-must_hit_temp = True
+must_hit_temp = False
 
 # Cone slope adj adjusts the target temperature when the segment takes longer than expected
 # It's expressed in deg C per (deg C per hour), i.e. the shift in temperature target per shift in temperature rate
