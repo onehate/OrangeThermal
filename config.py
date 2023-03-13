@@ -19,7 +19,7 @@ oven_power      = 2000  # Average watts consumed by oven while running
 
 ########################################################################
 #
-#   GPIO Setup (Orange Pi Zero 2 Board numbering) - DO NOT FORGET
+#   GPIO Setup (Orange Pi Zero 2 GPIO.BOARD numbering) - DO NOT FORGET
 #
 
 
