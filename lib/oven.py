@@ -10,7 +10,7 @@ import math
 log = logging.getLogger(__name__)
 
 try:
-    if config.max31855 + config.max6675 + config.max31855spi != 1:
+    if config.max31855 + config.max31855spi != 1:
         log.error("choose (only) one converter IC")
         exit()
     if config.max31855:
@@ -22,12 +22,6 @@ try:
         from max31855spi import MAX31855SPI, MAX31855SPIError
         log.info("import MAX31855SPI")
         spi_reserved_gpio = [7, 8, 9, 10, 11]
-
-    if config.max6675:
-        from max6675 import MAX6675, MAX6675Error
-        log.info("import MAX6675")
-        spi_reserved_gpio = [config.gpio_sensor_cs, config.gpio_sensor_clock, config.gpio_sensor_data]
-
 
     if config.air_enabled and config.gpio_air in spi_reserved_gpio:
         raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
@@ -89,8 +83,6 @@ class Oven (threading.Thread):
         self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
         self.heat = 0
         self.reset()
-
-
 
     def reset(self):
         self.profile = None
@@ -300,7 +292,6 @@ class Oven (threading.Thread):
                 self.PWM.setHeat2(0)
             time.sleep(self.time_step)
 
-
     def set_cool(self, value):
         if value:
             self.cool = 1.0
@@ -341,7 +332,6 @@ class Oven (threading.Thread):
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
-
 
 class PWM(threading.Thread):
     def __init__(self, Period_s, MinimumOnOff_s, PeriodMax_s):
@@ -411,7 +401,6 @@ class PWM(threading.Thread):
                 pwmheat1 = self.heat1On
                 pwmheat2 = self.heat2On
 
-
             # To improve performance, the heaters will alternate. Heater 1 turns on at the beginning of the period,
             # and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
             # exceeds the period, otherwise there will some time where neither is on.
@@ -436,10 +425,6 @@ class PWM(threading.Thread):
             if t > 0: time.sleep(t)
             if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
-
-
-
-
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
         threading.Thread.__init__(self)
@@ -447,17 +432,10 @@ class TempSensor(threading.Thread):
         self.temperature = 0
         self.time_step = time_step
 
-
 class TempSensorReal(TempSensor):
     def __init__(self, time_step):
         TempSensor.__init__(self, time_step)
-        if config.max6675:
-            log.info("init MAX6675")
-            self.thermocouple = MAX6675(config.gpio_sensor_cs,
-                                     config.gpio_sensor_clock,
-                                     config.gpio_sensor_data,
-                                     config.temp_scale)
-
+        
         if config.max31855:
             log.info("init MAX31855")
             self.thermocouple = MAX31855(config.gpio_sensor_cs,
@@ -480,7 +458,6 @@ class TempSensorReal(TempSensor):
                 self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
-
 
 class TempSensorSimulate(TempSensor):
     def __init__(self, oven, time_step, sleep_time):
@@ -532,7 +509,6 @@ class TempSensorSimulate(TempSensor):
 
             time.sleep(self.sleep_time)
 
-
 class Profile():
     def __init__(self, json_data):
         obj = json.loads(json_data)
@@ -562,7 +538,6 @@ class Profile():
     def get_duration(self):
         return max([t for (t, x) in self.data])
 
-
     def get_surrounding_points(self, time):
         if time > self.get_duration():
             return (self.data[-1], None)
@@ -586,7 +561,6 @@ class Profile():
                 return i
 
         return None
-
 
     def is_rising(self, time):
         (prev_point, next_point) = self.get_surrounding_points(time)
@@ -613,7 +587,6 @@ class Profile():
                     return datetime.timedelta(seconds = point)
                 else:
                     continue
-
 
     def get_target_temperature(self, time, currtemp = 10000):
 
@@ -665,13 +638,10 @@ class Profile():
         if time > self.get_duration():
             return 0
 
-
-
         incl = float(next_point[1] - prev_point[1]) / float(next_point[0] - prev_point[0])
         if math.isnan(incl): incl = 0
         temp = prev_point[1] + (time - prev_point[0]) * incl
         return temp
-
 
 class PID():
     def __init__(self, ki=1.0, kp=1.0, kd=1.0):
