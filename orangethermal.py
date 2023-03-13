@@ -8,10 +8,8 @@ import json
 import bottle
 import gevent
 import geventwebsocket
-from geventwebsocket import WebSocketError
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
-from geventwebsocket import WebSocketError
 
 try:
     sys.dont_write_bytecode = True
@@ -19,12 +17,11 @@ try:
     sys.dont_write_bytecode = False
 except:
     print("Could not import config file.")
-    print("Copy config.py.EXAMPLEREFLOW to config.py and adapt it for your setup.")
     exit(1)
 
 logging.basicConfig(level=config.log_level, format=config.log_format)
-log = logging.getLogger("picoreflowd")
-log.info("Starting picoreflowd")
+log = logging.getLogger("orangethermal")
+log.info("Starting orangethermal")
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, script_dir + '/lib/')
@@ -40,10 +37,10 @@ ovenWatcher = OvenWatcher(oven)
 
 @app.route('/')
 def index():
-    return bottle.redirect('/picoreflow/index.html')
+    return bottle.redirect('/orangethermal/index.html')
 
 
-@app.route('/picoreflow/:filename#.*#')
+@app.route('/orangethermal/:filename#.*#')
 def send_static(filename):
     log.debug("serving %s" % filename)
     return bottle.static_file(filename, root=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "public"))
