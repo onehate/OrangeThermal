@@ -5,7 +5,7 @@
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: Start  Reflow Server
-# Description: picoFlow On Raspberry Pi
+# Description: OrangeThermal On Orange Pi
 ### END INIT INFO
 
 
@@ -17,11 +17,11 @@ export HOME
 case "$1" in
     start)
         echo "Starting Reflow Server"
-        /home/pi/picoReflow/picoreflowd.py  2>&1 &
+        phyton3 /home/pi/OrangeThermal/orangethermal.py  2>&1 &
     ;;
     stop)
         echo "Stopping Reflow Server"
-        reflow_PID=`ps auxwww | grep picoreflowd.py | head -1 | awk '{print $2}'`
+        reflow_PID=`ps auxwww | grep orangethermal.py | head -1 | awk '{print $2}'`
         kill -9 $reflow_PID
     ;;
     *)
