@@ -14,17 +14,14 @@ listening_port = 8081
 
 ### Cost Estimate
 kwh_rate        = 0.10  # Rate in currency_type to calculate cost to run job
-currency_type   = "USD"   # Currency Symbol to show when calculating cost to run job
-oven_power      = 5000  # Average watts consumed by oven while running
+currency_type   = "EUR"   # Currency Symbol to show when calculating cost to run job
+oven_power      = 2000  # Average watts consumed by oven while running
 
 ########################################################################
 #
-#   GPIO Setup (BCM SoC Numbering Schema)
+#   GPIO Setup (Orange Pi Zero 2 Board numbering) - DO NOT FORGET
 #
-#   Check the RasPi docs to see where these GPIOs are
-#   connected on the P1 header for your board type/rev.
-#   These were tested on a Pi B Rev2 but of course you
-#   can use whichever GPIO you prefer/have available.
+
 
 ##Enabled outputs
 heat_enabled = True		# Enable control for heater
