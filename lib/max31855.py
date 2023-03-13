@@ -1,14 +1,13 @@
 #!/usr/bin/python
-import RPi.GPIO as GPIO
+import OPi.GPIO as GPIO
 
 class MAX31855(object):
     '''Python driver for [MAX38155 Cold-Junction Compensated Thermocouple-to-Digital Converter](http://www.maximintegrated.com/datasheet/index.mvp/id/7273)
      Requires:
-     - The [GPIO Library](https://code.google.com/p/raspberry-gpio-python/) (Already on most Raspberry Pi OS builds)
-     - A [Raspberry Pi](http://www.raspberrypi.org/)
+     - The [OPi GPIO Library](https://pypi.org/project/OPi.GPIO/)
 
     '''
-    def __init__(self, cs_pin, clock_pin, data_pin, units = "c", board = GPIO.BCM):
+    def __init__(self, cs_pin, clock_pin, data_pin, units = "c", board = GPIO.BOARD):
         '''Initialize Soft (Bitbang) SPI bus
 
         Parameters:
