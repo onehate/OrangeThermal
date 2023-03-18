@@ -36,33 +36,18 @@ successfully on any other OS, please update this:
   * gevent-1.0
   * gevent-websocket-0.9.3
 
-#### Ubuntu
+#### Ubuntu/Debian
 
     $ sudo apt-get install python3-pip python3-dev libevent-dev
     $ sudo pip3 install ez-setup
     $ sudo pip3 install greenlet bottle gevent gevent-websocket
 
-#### Raspbian
 
-    $ sudo apt-get install python3-pip python3-dev libevent-dev
-    $ sudo pip3 install ez-setup
-    $ sudo apt-get install python-gevent python-gevent-websocket
-    $ sudo pip3 install greenlet bottle
-
-#### Gentoo
-
-    $ emerge -av dev-libs/libevent dev-python/pip
-    $ pip install ez-setup
-    $ pip install greenlet bottle gevent gevent-websocket
-
-#### Raspberry PI deployment
+#### Orange PI deployment
 
 If you want to deploy the code on a PI for production:
 
-    $ pip3 install RPi.GPIO
-
-This **only applies to non-Raspbian installations**, since Raspbian ships
-RPi.GPIO with the default installation.
+    $ sudo pip3 install --upgrade OPi.GPIO
 
 If you also want to use the in-kernel SPI drivers with a MAX31855 sensor:
 
