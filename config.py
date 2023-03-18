@@ -44,7 +44,6 @@ gpio_door = 18
 ### Thermocouple Adapter selection:
 #   max31855 - bitbang SPI interface
 #   max31855spi - kernel SPI interface
-#   max6675 - bitbang SPI interface
 max31855 = 1
 max31855spi = 0 # Consumes pins 7,8,9,10,11
 
