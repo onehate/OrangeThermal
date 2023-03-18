@@ -46,7 +46,6 @@ gpio_door = 18
 #   max31855spi - kernel SPI interface
 #   max6675 - bitbang SPI interface
 max31855 = 1
-max6675 = 0
 max31855spi = 0 # Consumes pins 7,8,9,10,11
 
 ### Thermocouple Connection (using bitbang interfaces)
