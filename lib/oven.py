@@ -45,7 +45,7 @@ try:
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
     if config.heat_enabled:
-        GPIO.setup(config.gpio_heat, GPIO.OUT
+        GPIO.setup(config.gpio_heat, GPIO.OUT)
     else:
         None
     if config.heat2_enabled:  
