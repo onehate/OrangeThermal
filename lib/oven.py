@@ -71,7 +71,7 @@ except ImportError:
     log.warning(msg)
     gpio_available = False
 
-class Oven (threading.Thread):
+class Oven(threading.Thread):
     STATE_IDLE = "IDLE"
     STATE_RUNNING = "RUNNING"
     STATE_TUNING = "TUNING"
