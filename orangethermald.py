@@ -17,11 +17,12 @@ try:
     sys.dont_write_bytecode = False
 except:
     print("Could not import config file.")
+    print("Copy config.py.EXAMPLE to config.py and adapt it for your setup.")
     exit(1)
 
 logging.basicConfig(level=config.log_level, format=config.log_format)
-log = logging.getLogger("orangethermald")
-log.info("Starting orangethermald")
+log = logging.getLogger("picoreflowd")
+log.info("Starting picoreflowd")
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, script_dir + '/lib/')
