@@ -38,13 +38,13 @@ successfully on any other OS, please update this:
 
 #### Ubuntu
 
-    $ sudo apt-get install python3-pip python-dev libevent-dev
+    $ sudo apt-get install python3-pip python3-dev libevent-dev
     $ sudo pip3 install ez-setup
     $ sudo pip3 install greenlet bottle gevent gevent-websocket
 
 #### Raspbian
 
-    $ sudo apt-get install python3-pip python-dev libevent-dev
+    $ sudo apt-get install python3-pip python3-dev libevent-dev
     $ sudo pip3 install ez-setup
     $ sudo apt-get install python-gevent python-gevent-websocket
     $ sudo pip3 install greenlet bottle
