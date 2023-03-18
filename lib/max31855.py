@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import OPi as GPIO
+import OPi.GPIO as GPIO
 
 class MAX31855(object):
     '''Python driver for [MAX38155 Cold-Junction Compensated Thermocouple-to-Digital Converter](http://www.maximintegrated.com/datasheet/index.mvp/id/7273)
