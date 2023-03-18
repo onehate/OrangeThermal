@@ -20,8 +20,8 @@ except:
     exit(1)
 
 logging.basicConfig(level=config.log_level, format=config.log_format)
-log = logging.getLogger("orangethermal")
-log.info("Starting orangethermal")
+log = logging.getLogger("orangethermald")
+log.info("Starting orangethermald")
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, script_dir + '/lib/')
