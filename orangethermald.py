@@ -37,10 +37,10 @@ ovenWatcher = OvenWatcher(oven)
 
 @app.route('/')
 def index():
-    return bottle.redirect('/orangethermal/index.html')
+    return bottle.redirect('/picoreflow/index.html')
 
 
-@app.route('/orangethermal/:filename#.*#')
+@app.route('/picoreflow/:filename#.*#')
 def send_static(filename):
     log.debug("serving %s" % filename)
     return bottle.static_file(filename, root=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "public"))
