@@ -22,17 +22,16 @@ try:
         from max31855spi import MAX31855SPI, MAX31855SPIError
         log.info("import MAX31855SPI")
         spi_reserved_gpio = [7, 8, 9, 10, 11]
-
-    if config.air_enabled and config.gpio_air in spi_reserved_gpio:
-        raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
-    if config.cool_enabled and config.gpio_cool in spi_reserved_gpio:
-        raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
-    if config.door_enabled and config.gpio_door in spi_reserved_gpio:
-        raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
-    if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
-        raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
-    if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
-        raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
+        if config.air_enabled and config.gpio_air in spi_reserved_gpio:
+            raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
+        if config.cool_enabled and config.gpio_cool in spi_reserved_gpio:
+            raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
+        if config.door_enabled and config.gpio_door in spi_reserved_gpio:
+            raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
+        if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
+            raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
+        if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
+            raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
 
     sensor_available = True
 
