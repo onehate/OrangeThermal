@@ -44,11 +44,26 @@ try:
     import OPi.GPIO as GPIO #converted RPi to OPi
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
-    GPIO.setup(config.gpio_heat, GPIO.OUT) 	if config.heat_enabled else None
-    GPIO.setup(config.gpio_heat2, GPIO.OUT) if config.heat2_enabled else None
-    GPIO.setup(config.gpio_cool, GPIO.OUT) 	if config.cool_enabled else None
-    GPIO.setup(config.gpio_air, GPIO.OUT) 	if config.air_enabled else None
-    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP) if config.door_enabled else None
+    if config.heat_enabled:
+        GPIO.setup(config.gpio_heat, GPIO.OUT
+    else:
+        None
+    if config.heat2_enabled:  
+        GPIO.setup(config.gpio_heat2, GPIO.OUT)
+    else:
+        None
+    if config.cool_enabled:
+        GPIO.setup(config.gpio_cool, GPIO.OUT)
+    else:
+        None
+    if config.air_enabled:
+        GPIO.setup(config.gpio_air, GPIO.OUT)
+    else:
+        None
+    if config.door_enabled:
+        GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    else:
+        None
     gpio_available = True
 
 except ImportError:
