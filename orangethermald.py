@@ -21,8 +21,8 @@ except:
     exit(1)
 
 logging.basicConfig(level=config.log_level, format=config.log_format)
-log = logging.getLogger("picoreflowd")
-log.info("Starting picoreflowd")
+log = logging.getLogger("orangethermald")
+log.info("Starting orangethermald")
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, script_dir + '/lib/')
@@ -38,10 +38,10 @@ ovenWatcher = OvenWatcher(oven)
 
 @app.route('/')
 def index():
-    return bottle.redirect('/picoreflow/index.html')
+    return bottle.redirect('/orangethermal/index.html')
 
 
-@app.route('/picoreflow/:filename#.*#')
+@app.route('/orangethermal/:filename#.*#')
 def send_static(filename):
     log.debug("serving %s" % filename)
     return bottle.static_file(filename, root=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "public"))
