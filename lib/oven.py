@@ -87,9 +87,7 @@ class Oven(threading.Thread):
         if sensor_available:
             self.temp_sensor = TempSensorReal(self.time_step)
         else:
-            self.temp_sensor = TempSensorSimulate(self,
-                                                  self.time_step,
-                                                  self.time_step)
+            self.temp_sensor = TempSensorSimulate(self, self.time_step, self.time_step)
         self.temp_sensor.start()
         self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
         self.PWM.start()
@@ -165,21 +163,14 @@ class Oven(threading.Thread):
             
             #Log Data:
             with open("/home/pi/log_{0}.csv".format(now.strftime("%Y-%m-%d")), "a") as filelog:
-                filelog.write("{0},{1:.2f},{2:.1f},{3:.1f}\n".format(
-                    now.strftime("%Y-%m-%d,%H:%M:%S"),
-                    self.temp_sensor.temperature,
-                    self.target,
-                    self.heat))
+                filelog.write("{0},{1:.2f},{2:.1f},{3:.1f}\n".format(now.strftime("%Y-%m-%d,%H:%M:%S"), self.temp_sensor.temperature, self.target, self.heat))
 
             self.door = self.get_door_state()
 
 
             if self.state == Oven.STATE_TUNING:
 
-                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
-                         (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door,
-                          self.runtime,
-                          self.totaltime))
+                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
                 self.runtime = (now-self.start_time).total_seconds()
                 #This algorithm is based off that used by Marlin (3-D printer control).
                 #It essentially measures the overshoot and undershoot when turning the heat on and off,
@@ -220,9 +211,7 @@ class Oven(threading.Thread):
                         log.info("Kp: %.8f, Ki: %.8f, Kd = %.8f", Kp, Ki, Kd)
                     self.heat = (self.bias + self.d)
                     self.cycles= self.cycles + 1
-                    log.info(
-                        "Under Target, new values: d: %.2f, bias: %.2f, t_low: %.0f, t_high: %.0f, MaxT: %.0f, MinT: %.0f",
-                        self.d, self.bias, self.t_low, self.t_high, self.maxtemp, self.mintemp)
+                    log.info("Under Target, new values: d: %.2f, bias: %.2f, t_low: %.0f, t_high: %.0f, MaxT: %.0f, MinT: %.0f", self.d, self.bias, self.t_low, self.t_high, self.maxtemp, self.mintemp)
                     self.mintemp = self.target
                     self.maxtemp = self.target
 
@@ -242,9 +231,7 @@ class Oven(threading.Thread):
                 else:
                     runtime_delta = datetime.datetime.now() - self.start_time
                     self.runtime = runtime_delta.total_seconds()
-                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" %
-                         (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime,
-                          self.totaltime))
+                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
                 self.target = self.profile.get_target_temperature(self.runtime, self.temp_sensor.temperature)
                 pid = self.pid.compute(self.target, self.temp_sensor.temperature)
 
@@ -452,10 +439,7 @@ class TempSensorReal(TempSensor):
         
         if config.max31855:
             log.info("init MAX31855")
-            self.thermocouple = MAX31855(config.gpio_sensor_cs,
-                                     config.gpio_sensor_clock,
-                                     config.gpio_sensor_data,
-                                     config.temp_scale)
+            self.thermocouple = MAX31855(config.gpio_sensor_cs, config.gpio_sensor_clock, config.gpio_sensor_data, config.temp_scale)
 
         if config.max31855spi:
             log.info("init MAX31855-spi")
