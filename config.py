@@ -25,7 +25,7 @@ oven_power      = 2000  # Average watts consumed by oven while running
 
 ##Enabled outputs
 heat_enabled = True		# Enable control for heater
-heat2_enabled = True	# Enabled control for second heater
+heat2_enabled = False	# Enabled control for second heater
 cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
 
@@ -114,7 +114,7 @@ pid_kp = 0.5  # Proportional
 sim_t_env      = 25.0   # deg C
 sim_c_heat     = 100.0  # J/K  heat capacity of heat element
 sim_c_oven     = 2000.0 # J/K  heat capacity of oven
-sim_p_heat     = 3500.0 # W    heating power of oven
+sim_p_heat     = 2000.0 # W    heating power of oven
 sim_R_o_nocool = 1.0    # K/W  thermal resistance oven -> environment
 sim_R_o_cool   = 0.05   # K/W  " with cooling
 sim_R_ho_noair = 0.1    # K/W  thermal resistance heat element -> oven
