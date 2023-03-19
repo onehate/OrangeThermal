@@ -4,6 +4,7 @@ import random
 import datetime
 import logging
 import json
+
 import config
 import math
 
@@ -71,14 +72,15 @@ except ImportError:
     log.warning(msg)
     gpio_available = False
 
-class Oven(threading.Thread):
+
+class Oven (threading.Thread):
     STATE_IDLE = "IDLE"
     STATE_RUNNING = "RUNNING"
     STATE_TUNING = "TUNING"
 
     def __init__(self, simulate=False, time_step=config.sensor_read_period):
         threading.Thread.__init__(self)
-        self.daemon=True
+        self.daemon = True
         self.simulate = simulate
         self.time_step = time_step
         #self.reset()
@@ -87,7 +89,9 @@ class Oven(threading.Thread):
         if sensor_available:
             self.temp_sensor = TempSensorReal(self.time_step)
         else:
-            self.temp_sensor = TempSensorSimulate(self, self.time_step, self.time_step)
+            self.temp_sensor = TempSensorSimulate(self,
+                                                  self.time_step,
+                                                  self.time_step)
         self.temp_sensor.start()
         self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
         self.PWM.start()
@@ -328,7 +332,6 @@ class Oven(threading.Thread):
         return state
 
     def get_door_state(self):
-
         if gpio_available and config.door_enabled:
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
@@ -429,9 +432,10 @@ class PWM(threading.Thread):
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
         threading.Thread.__init__(self)
-        self.daemon=True
+        self.daemon = True
         self.temperature = 0
         self.time_step = time_step
+
 
 class TempSensorReal(TempSensor):
     def __init__(self, time_step):
@@ -439,7 +443,10 @@ class TempSensorReal(TempSensor):
         
         if config.max31855:
             log.info("init MAX31855")
-            self.thermocouple = MAX31855(config.gpio_sensor_cs, config.gpio_sensor_clock, config.gpio_sensor_data, config.temp_scale)
+            self.thermocouple = MAX31855(config.gpio_sensor_cs,
+                                        config.gpio_sensor_clock,
+                                        config.gpio_sensor_data,
+                                        config.temp_scale)
 
         if config.max31855spi:
             log.info("init MAX31855-spi")
@@ -456,6 +463,7 @@ class TempSensorReal(TempSensor):
                 self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
+
 
 class TempSensorSimulate(TempSensor):
     def __init__(self, oven, time_step, sleep_time):
@@ -507,11 +515,12 @@ class TempSensorSimulate(TempSensor):
 
             time.sleep(self.sleep_time)
 
+
 class Profile():
     def __init__(self, json_data):
         obj = json.loads(json_data)
         self.name = obj["name"]
-
+        
         #self.data is an array of 2-element arrays [time, temp]
         self.data = sorted(obj["data"])
 
