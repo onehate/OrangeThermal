@@ -15,7 +15,7 @@ class MAX31855(object):
         - clock_pin: Clock (SCLK / SCK) pin (Any GPIO)
         - data_pin:  Data input (SO / MOSI) pin (Any GPIO)
         - units:     (optional) unit of measurement to return. ("c" (default) | "k" | "f")
-        - board:     (optional) pin numbering method as per RPi.GPIO library (GPIO.BCM (default) | GPIO.BOARD)
+        - board:     (optional) pin numbering method as per OPi.GPIO library (GPIO.BCM - GPIO.BOARD)
 
         '''
         self.cs_pin = cs_pin
@@ -23,7 +23,7 @@ class MAX31855(object):
         self.data_pin = data_pin
         self.units = units
         self.data = None
-        self.board = board
+        self.board = GPIO.BOARD
 
         # Initialize needed GPIO
         GPIO.setboard(GPIO.H616)
