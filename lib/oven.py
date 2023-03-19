@@ -40,8 +40,9 @@ except ImportError:
     sensor_available = False
 
 try:
-    import orangepi.zero2 as GPIO #converted RPi to OPi
-    GPIO.setmode(orangepi.zero2.BOARD)
+    import OPi.GPIO as GPIO #converted RPi to OPi
+    GPIO.setboard(GPIO.H616)
+    GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
     if config.heat_enabled:
         GPIO.setup(config.gpio_heat, GPIO.OUT)
