@@ -96,6 +96,7 @@ must_hit_temp = False
 # Only used if must_hit_temp is True
 cone_slope_adj = 0.4
 
+tune_cycles = 3
 tune_target_temp = 150
 
 ########################################################################
