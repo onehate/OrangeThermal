@@ -62,7 +62,7 @@ sensor_read_period = 5
 
 # PWM Settings
 ### Default period of PWM, in seconds
-PWM_Period_s = 30
+PWM_Period_s = 1
 
 # The period will be extended to meet the demanded duty cycle for DC close to 0 or 100%
 # without violating the minimum onoff time, until the period reaches its max, at which point
@@ -96,7 +96,10 @@ must_hit_temp = False
 # Only used if must_hit_temp is True
 cone_slope_adj = 0.4
 
+#the number of cycles the PID autone will complete before setting PID
 tune_cycles = 3
+
+#the temperature the autotune will use for calculation of PID
 tune_target_temp = 150
 
 ########################################################################
