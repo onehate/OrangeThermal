@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import orangepi.zero2 as GPIO
+import OPi.GPIO as GPIO
 
 class MAX31855(object):
     '''Python driver for [MAX38155 Cold-Junction Compensated Thermocouple-to-Digital Converter](http://www.maximintegrated.com/datasheet/index.mvp/id/7273)
@@ -26,7 +26,9 @@ class MAX31855(object):
         self.board = board
 
         # Initialize needed GPIO
-        GPIO.setmode(self.board)
+        GPIO.setboard(GPIO.H616)
+        GPIO.setmode(GPIO.BOARD)
+        #GPIO.setmode(self.board)
         GPIO.setup(self.cs_pin, GPIO.OUT)
         GPIO.setup(self.clock_pin, GPIO.OUT)
         GPIO.setup(self.data_pin, GPIO.IN)
