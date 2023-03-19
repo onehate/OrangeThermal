@@ -30,7 +30,7 @@ cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
 
 ### Outputs
-gpio_heat = PC6  # Switches zero-cross SSR
+gpio_heat = 18  # Switches zero-cross SSR
 gpio_heat2 = 13 # Second heater control
 gpio_cool = 15  # Regulates PWM for 12V DC Blower
 gpio_air  = 7   # Switches 0-phase det. SSR
