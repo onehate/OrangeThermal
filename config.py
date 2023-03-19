@@ -25,7 +25,7 @@ oven_power      = 2000  # Average watts consumed by oven while running
 
 ##Enabled outputs
 heat_enabled = True		# Enable control for heater
-heat2_enabled = False	# Enabled control for second heater
+heat2_enabled = True	# Enabled control for second heater
 cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
 
