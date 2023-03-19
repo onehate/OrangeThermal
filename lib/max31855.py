@@ -7,7 +7,7 @@ class MAX31855(object):
      - The [OPi GPIO Library](https://pypi.org/project/OPi.GPIO/)
 
     '''
-    def __init__(self, cs_pin, clock_pin, data_pin, units = "c", board = GPIO.BOARD):
+    def __init__(self, cs_pin, clock_pin, data_pin, units = "c", board = GPIO.H616):
         '''Initialize Soft (Bitbang) SPI bus
 
         Parameters:
@@ -26,9 +26,9 @@ class MAX31855(object):
         self.board = board
 
         # Initialize needed GPIO
-        GPIO.setboard(GPIO.H616)
-        GPIO.setmode(GPIO.BOARD)
-        #GPIO.setmode(self.board)
+        #GPIO.setboard(GPIO.H616)
+        #GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(self.board)
         GPIO.setup(self.cs_pin, GPIO.OUT)
         GPIO.setup(self.clock_pin, GPIO.OUT)
         GPIO.setup(self.data_pin, GPIO.IN)
