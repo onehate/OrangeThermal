@@ -57,7 +57,7 @@ spi_sensor_chip_id = 0
 
 ### amount of time, in seconds, to wait between reads of the thermocouple
 # This is also the rate of the control loop?
-sensor_read_period = 5
+sensor_read_period = 1
 
 
 # PWM Settings
@@ -87,7 +87,7 @@ heat2adj = 0		# heater 2 PWM offset, in percent
 # If false, the system will not adjust the timing of the profile
 # If true, the system is guaranteed to hit the temperatures of the profile. It will wait until
 # the target is reached before moving to the next segment of the profile
-must_hit_temp = False
+must_hit_temp = True
 
 # Cone slope adj adjusts the target temperature when the segment takes longer than expected
 # It's expressed in deg C per (deg C per hour), i.e. the shift in temperature target per shift in temperature rate
