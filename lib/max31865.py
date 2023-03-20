@@ -137,7 +137,7 @@ class MAX31865(object):
     REGISTERS_WRITE_MASK = 0x80
     """Mask to be ORed to register addresses when writing."""
 
-    REGISTER_CONFIGURATION_ONE_SHOT_3_WIRE = 0b10110010
+    REGISTER_CONFIGURATION_ONE_SHOT_3_WIRE = 0b10110011
     """
     Configuration 0b10110010 == 0xB2:
     bit 7: Vbias -> 1 (ON)
@@ -149,7 +149,7 @@ class MAX31865(object):
     bit 0: 50/60 Hz filter select -> 0 (60Hz)
     """
 
-    REGISTER_CONFIGURATION_ONE_SHOT = 0b10100010
+    REGISTER_CONFIGURATION_ONE_SHOT = 0b10100011
     """
     Configuration 0b10110010 == 0xB2:
     bit 7: Vbias -> 1 (ON)
