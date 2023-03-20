@@ -453,11 +453,9 @@ class TempSensorReal(TempSensor):
 
         while True:
             try:
-                with MAX31865 as temp:
-                    while True:
-                        lasttemp = temp.temperature()
+                lasttemp = self.temperature()
             except Exception:
-                self.temperature = lasttemp
+                #self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
 
