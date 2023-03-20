@@ -453,9 +453,9 @@ class TempSensorReal(TempSensor):
 
         while True:
             try:
-                lasttemp = self.temperature()
+                lasttemp = self.thermocouple.temperature()
             except Exception:
-                #self.temperature = lasttemp
+                self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
 
