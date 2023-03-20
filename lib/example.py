@@ -4,7 +4,7 @@
 
 import logging
 import time
-import config
+import config2
 from max31865 import MAX31865
 
 
