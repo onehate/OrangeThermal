@@ -14,8 +14,8 @@ try:
     from max31865 import MAX31865, MAX31865Error
     log.info("import MAX31865")
     sensor_available = True
-"""
-    if config.max31855 + config.max31855spi != 1:
+
+""" if config.max31855 + config.max31855spi != 1:
         log.error("choose (only) one converter IC")
         exit()
     if config.max31855:
@@ -38,8 +38,8 @@ try:
         if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
             raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
 
-    sensor_available = True
-"""
+    sensor_available = True """
+
 except ImportError:
     log.exception("Could not initialize temperature sensor, using dummy values!")
     sensor_available = False
