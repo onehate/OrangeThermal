@@ -204,7 +204,7 @@ class MAX31865(object):
         :param register: Either name or address of register.
         :param data: Single byte to be written.
         """
-        GPIO.output(self.cs_pin, GPIO.LOW)
+        GPIO.output(self.cs_pin, GPIO.HIGH)
 
         if isinstance(register, str):
             register = self.REGISTERS[register]

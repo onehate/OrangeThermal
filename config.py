@@ -47,9 +47,9 @@ max31865 = 1
 
 ### Thermocouple Connection (using bitbang interfaces)
 gpio_sensor_cs = 24
-gpio_sensor_clock = 23
 gpio_sensor_miso = 21
 gpio_sensor_mosi = 19
+gpio_sensor_clock = 23
 
 ### Thermocouple SPI Connection (using adafrut drivers + kernel SPI interface)
 spi_sensor_chip_id = 0
