@@ -259,7 +259,7 @@ class MAX31865(object):
         """
         Read out temperature. Conversion to °C included.
         """
-        self.write_register('config', MAX31865.REGISTER_CONFIGURATION_ONE_SHOT_3_WIRE)
+        self.write_register('config', MAX31865.REGISTER_CONFIGURATION_ONE_SHOT)
 
         # Sleep to wait for conversion (Conversion time is less than 100ms)
         time.sleep(0.1)
