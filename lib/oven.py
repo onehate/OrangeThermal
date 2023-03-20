@@ -453,8 +453,9 @@ class TempSensorReal(TempSensor):
 
         while True:
             try:
-                self.temperature = self.thermocouple.temperature(temp)
-                lasttemp = self.temperature
+                with MAX31865(cs_pin = 24, miso_pin = 21, mosi_pin = 19, clk_pin = 23) as temp:
+                    while True:
+                        lasttemp = temp.temperature()
             except Exception:
                 self.temperature = lasttemp
                 log.exception("problem reading temp")
