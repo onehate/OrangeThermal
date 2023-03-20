@@ -69,7 +69,7 @@ try:
     gpio_available = True
 
 except ImportError:
-    msg = "Could not initialize GPIOs, oven operation will only be simulated!"
+    msg = "Could not initialize GPIOs!"
     log.warning(msg)
     gpio_available = False
 
@@ -79,20 +79,12 @@ class Oven (threading.Thread):
     STATE_RUNNING = "RUNNING"
     STATE_TUNING = "TUNING"
 
-    def __init__(self, simulate=False, time_step=config.sensor_read_period):
+    def __init__(self, time_step=config.sensor_read_period):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.simulate = simulate
         self.time_step = time_step
         #self.reset()
-        if simulate:
-            self.temp_sensor = TempSensorSimulate(self, 0.5, self.time_step)
-        if sensor_available:
-            self.temp_sensor = TempSensorReal(self.time_step)
-        else:
-            self.temp_sensor = TempSensorSimulate(self,
-                                                  self.time_step,
-                                                  self.time_step)
+        self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
         self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
         self.PWM.start()
@@ -231,11 +223,8 @@ class Oven (threading.Thread):
                     continue
 
             elif self.state == Oven.STATE_RUNNING:
-                if self.simulate: ##Probably just won't touch the simulation
-                    self.runtime += 0.5
-                else:
-                    runtime_delta = datetime.datetime.now() - self.start_time
-                    self.runtime = runtime_delta.total_seconds()
+                runtime_delta = datetime.datetime.now() - self.start_time
+                self.runtime = runtime_delta.total_seconds()
                 log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
                 self.target = self.profile.get_target_temperature(self.runtime, self.temp_sensor.temperature)
                 pid = self.pid.compute(self.target, self.temp_sensor.temperature)
@@ -470,58 +459,6 @@ class TempSensorReal(TempSensor):
                 self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
-
-
-class TempSensorSimulate(TempSensor):
-    def __init__(self, oven, time_step, sleep_time):
-        TempSensor.__init__(self, time_step)
-        self.oven = oven
-        self.sleep_time = sleep_time
-
-    def run(self):
-        t_env      = config.sim_t_env
-        c_heat     = config.sim_c_heat
-        c_oven     = config.sim_c_oven
-        p_heat     = config.sim_p_heat
-        R_o_nocool = config.sim_R_o_nocool
-        R_o_cool   = config.sim_R_o_cool
-        R_ho_noair = config.sim_R_ho_noair
-        R_ho_air   = config.sim_R_ho_air
-
-        t = t_env  # deg C  temp in oven
-        t_h = t    # deg C temp of heat element
-        while True:
-            #heatOn energy
-            Q_h = p_heat * self.time_step * self.oven.heat
-
-            #temperature change of heat element by heatOn
-            t_h += Q_h / c_heat
-
-            if self.oven.air:
-                R_ho = R_ho_air
-            else:
-                R_ho = R_ho_noair
-
-            #energy flux heat_el -> oven
-            p_ho = (t_h - t) / R_ho
-
-            #temperature change of oven and heat el
-            t   += p_ho * self.time_step / c_oven
-            t_h -= p_ho * self.time_step / c_heat
-
-            #energy flux oven -> env
-            if self.oven.cool:
-                p_env = (t - t_env) / R_o_cool
-            else:
-                p_env = (t - t_env) / R_o_nocool
-
-            #temperature change of oven by cooling to env
-            t -= p_env * self.time_step / c_oven
-            log.debug("energy sim: -> %dW heater: %.0f -> %dW oven: %.0f -> %dW env" % (int(p_heat * self.oven.heat), t_h, int(p_ho), t, int(p_env)))
-            self.temperature = t
-
-            time.sleep(self.sleep_time)
-
 
 class Profile():
     def __init__(self, json_data):
