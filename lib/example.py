@@ -17,7 +17,7 @@ def main():
             cs_pin = 24,
             miso_pin = 21,
             mosi_pin = 19,
-            clk_pin = 23,
+            clk_pin = 23
     ) as temp:
         while True:
             logging.info('Temperature: %0.2f°C', temp.temperature())
