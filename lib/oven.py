@@ -446,8 +446,7 @@ class TempSensorReal(TempSensor):
         self.thermocouple = MAX31865(config.gpio_sensor_cs,
                                     config.gpio_sensor_clock,
                                     config.gpio_sensor_mosi,
-                                    config.gpio_sensor_miso,
-                                    config.temp_scale)
+                                    config.gpio_sensor_miso)
 
         #if config.max31855:
         #    log.info("init MAX31855")

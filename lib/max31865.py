@@ -255,8 +255,7 @@ class MAX31865(object):
             logging.getLogger(__name__).debug('read_registers: %s = 0x%02x', reg_name, data[reg_address])
         return data
 
-    def temperature(self):
-    #def get(self):    
+    def temperature(self):    
         """
         Read out temperature. Conversion to °C included.
         """
