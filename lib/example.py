@@ -17,8 +17,8 @@ def main():
     with MAX31865(config.gpio_sensor_cs,
                 config.gpio_sensor_miso,
                 config.gpio_sensor_mosi,
-                config.gpio_sensor_clock)
-    as temp:
+                config.gpio_sensor_clock
+    ) as temp:
         while True:
             logging.info('Temperature: %0.2f°C', temp.temperature())
             time.sleep(1)
