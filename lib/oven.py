@@ -15,30 +15,30 @@ try:
     log.info("import MAX31865")
     sensor_available = True
 
-""" if config.max31855 + config.max31855spi != 1:
-        log.error("choose (only) one converter IC")
-        exit()
-    if config.max31855:
-        from max31855 import MAX31855, MAX31855Error
-        log.info("import MAX31855")
-        spi_reserved_gpio = [config.gpio_sensor_cs, config.gpio_sensor_clock, config.gpio_sensor_data]
-    if config.max31855spi:
-        import Adafruit_GPIO.SPI as SPI
-        from max31855spi import MAX31855SPI, MAX31855SPIError
-        log.info("import MAX31855SPI")
-        spi_reserved_gpio = [7, 8, 9, 10, 11]
-        if config.air_enabled and config.gpio_air in spi_reserved_gpio:
-            raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
-        if config.cool_enabled and config.gpio_cool in spi_reserved_gpio:
-            raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
-        if config.door_enabled and config.gpio_door in spi_reserved_gpio:
-            raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
-        if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
-            raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
-        if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
-            raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
+    # if config.max31855 + config.max31855spi != 1:
+    #     log.error("choose (only) one converter IC")
+    #     exit()
+    # if config.max31855:
+    #     from max31855 import MAX31855, MAX31855Error
+    #     log.info("import MAX31855")
+    #     spi_reserved_gpio = [config.gpio_sensor_cs, config.gpio_sensor_clock, config.gpio_sensor_data]
+    # if config.max31855spi:
+    #     import Adafruit_GPIO.SPI as SPI
+    #     from max31855spi import MAX31855SPI, MAX31855SPIError
+    #     log.info("import MAX31855SPI")
+    #     spi_reserved_gpio = [7, 8, 9, 10, 11]
+    #     if config.air_enabled and config.gpio_air in spi_reserved_gpio:
+    #         raise Exception("gpio_air pin %s collides with SPI pins %s" % (config.gpio_air, spi_reserved_gpio))
+    #     if config.cool_enabled and config.gpio_cool in spi_reserved_gpio:
+    #         raise Exception("gpio_cool pin %s collides with SPI pins %s" % (config.gpio_cool, spi_reserved_gpio))
+    #     if config.door_enabled and config.gpio_door in spi_reserved_gpio:
+    #         raise Exception("gpio_door pin %s collides with SPI pins %s" % (config.gpio_door, spi_reserved_gpio))
+    #     if config.heat_enabled and config.gpio_heat in spi_reserved_gpio:
+    #         raise Exception("gpio_heat pin %s collides with SPI pins %s" % (config.gpio_heat, spi_reserved_gpio))
+    #     if config.heat2_enabled and config.gpio_heat2 in spi_reserved_gpio:
+    #         raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
 
-    sensor_available = True """
+    # sensor_available = True
 
 except ImportError:
     log.exception("Could not initialize temperature sensor, using dummy values!")
