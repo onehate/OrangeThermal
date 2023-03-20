@@ -453,7 +453,7 @@ class TempSensorReal(TempSensor):
 
         while True:
             try:
-                with MAX31865(cs_pin = 24, miso_pin = 21, mosi_pin = 19, clk_pin = 23) as temp:
+                with MAX31865 as temp:
                     while True:
                         lasttemp = temp.temperature()
             except Exception:
