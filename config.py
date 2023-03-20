@@ -30,27 +30,26 @@ cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
 
 ### Outputs
-gpio_heat = 7  # Switches zero-cross SSR
-gpio_heat2 = 11 # Second heater control
-gpio_cool = 13  # Regulates PWM for 12V DC Blower
-gpio_air  = 15   # Switches 0-phase det. SSR
+gpio_heat = 3  # Switches zero-cross SSR
+gpio_cool = 5  # Regulates PWM for 12V DC Blower
+gpio_air  = 7   # Switches 0-phase det. SSR
 
 heater_invert = 0 # switches the polarity of the heater control
 
 ### Inputs
 door_enabled = False	# Enable sensor for door open
-gpio_door = 19
+gpio_door = 12
 
 ### Thermocouple Adapter selection:
 #   max31855 - bitbang SPI interface
 #   max31855spi - kernel SPI interface
-max31855 = 1
-max31855spi = 0 # Consumes pins 7,8,9,10,11
+max31865 = 1
 
 ### Thermocouple Connection (using bitbang interfaces)
-gpio_sensor_cs = 22
-gpio_sensor_clock = 24
-gpio_sensor_data = 26
+gpio_sensor_cs = 24
+gpio_sensor_clock = 23
+gpio_sensor_miso = 21
+gpio_sensor_mosi = 19
 
 ### Thermocouple SPI Connection (using adafrut drivers + kernel SPI interface)
 spi_sensor_chip_id = 0

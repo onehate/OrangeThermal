@@ -11,6 +11,10 @@ import math
 log = logging.getLogger(__name__)
 
 try:
+    from max31865 import MAX31865, MAX31865Error
+    log.info("import MAX31865")
+    sensor_available = True
+'''
     if config.max31855 + config.max31855spi != 1:
         log.error("choose (only) one converter IC")
         exit()
@@ -35,10 +39,11 @@ try:
             raise Exception("gpio_heat2 pin %s collides with SPI pins %s" % (config.gpio_heat2, spi_reserved_gpio))
 
     sensor_available = True
-
+'''
 except ImportError:
     log.exception("Could not initialize temperature sensor, using dummy values!")
     sensor_available = False
+
 
 try:
     import OPi.GPIO as GPIO #converted RPi to OPi
@@ -47,10 +52,6 @@ try:
     GPIO.setwarnings(False)
     if config.heat_enabled:
         GPIO.setup(config.gpio_heat, GPIO.OUT)
-    else:
-        None
-    if config.heat2_enabled:  
-        GPIO.setup(config.gpio_heat2, GPIO.OUT)
     else:
         None
     if config.cool_enabled:
@@ -111,7 +112,7 @@ class Oven (threading.Thread):
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
         self.PWM.setHeat1(0)
-        self.PWM.setHeat2(0)
+        #self.PWM.setHeat2(0)
         self.set_cool(False)
         self.set_air(False)
         self.pid.reset()
@@ -291,10 +292,10 @@ class Oven (threading.Thread):
             #Do these regardless of the machine state
             if self.heat > 0:
                 self.PWM.setHeat1(self.heat + config.heat1adj)
-                self.PWM.setHeat2(self.heat + config.heat2adj)
+                #self.PWM.setHeat2(self.heat + config.heat2adj)
             else:
                 self.PWM.setHeat1(0)
-                self.PWM.setHeat2(0)
+                #self.PWM.setHeat2(0)
             time.sleep(self.time_step)
 
     def set_cool(self, value):
@@ -345,18 +346,18 @@ class PWM(threading.Thread):
         self.MinimumOnOff = MinimumOnOff_s
         self.PeriodMax = PeriodMax_s
         self.Heat1 = 0
-        self.Heat2 = 0
+        #self.Heat2 = 0
         self.lock = threading.Lock()
         self.period = 1
         self.heat1On = 0
-        self.heat2On = 0
+        #self.heat2On = 0
 
     def setHeat1(self, newPWM):
         self.Heat1 = sorted((0, newPWM, 1))[1]
         self.adjPWM()
-    def setHeat2(self, newPWM):
-        self.Heat2 = sorted((0, newPWM, 1))[1]
-        self.adjPWM()
+    #def setHeat2(self, newPWM):
+    #    self.Heat2 = sorted((0, newPWM, 1))[1]
+    #    self.adjPWM()
 
     def adjPWM(self):
         period = self.PeriodSet
@@ -383,8 +384,8 @@ class PWM(threading.Thread):
         with self.lock:
             self.period = period
             self.heat1On = heat1ontime
-            h2 = self.Heat2 * period
-            self.heat2On = 0 if h2 < self.MinimumOnOff else period if h2 > (period - self.MinimumOnOff) else h2
+            #h2 = self.Heat2 * period
+            #self.heat2On = 0 if h2 < self.MinimumOnOff else period if h2 > (period - self.MinimumOnOff) else h2
 
     def run(self):
 
@@ -403,31 +404,31 @@ class PWM(threading.Thread):
             with self.lock:
                 pwmperiod = self.period
                 pwmheat1 = self.heat1On
-                pwmheat2 = self.heat2On
+                #pwmheat2 = self.heat2On
 
             # To improve performance, the heaters will alternate. Heater 1 turns on at the beginning of the period,
             # and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
             # exceeds the period, otherwise there will some time where neither is on.
             # Each on/off checks to make sure the the on time is not zero or one
-            if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
-            if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
-                time.sleep(self.heat1On)
-                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
+            #if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
+            #if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
+            #    time.sleep(self.heat1On)
+            #    if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
                 #When sleeping here, need to check that the required time has not already elapsed
-                t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).total_seconds()
-                if t > 0: time.sleep(t)
-                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-            else:										#Otherwise, 2 turns on before 1 turns off
-                time.sleep(pwmperiod - pwmheat2)
-                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-                t = pwmheat1 - (datetime.datetime.now()-start).total_seconds()
-                if t > 0: time.sleep(t)
-                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
+            #    t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).total_seconds()
+            #    if t > 0: time.sleep(t)
+            #    if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+            #else:										#Otherwise, 2 turns on before 1 turns off
+            #    time.sleep(pwmperiod - pwmheat2)
+            #    if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+            #    t = pwmheat1 - (datetime.datetime.now()-start).total_seconds()
+            #    if t > 0: time.sleep(t)
+            #    if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
-            t = pwmperiod - (datetime.datetime.now()-start).total_seconds()
-            if t > 0: time.sleep(t)
-            if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
+            #t = pwmperiod - (datetime.datetime.now()-start).total_seconds()
+            #if t > 0: time.sleep(t)
+            #if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
@@ -441,16 +442,23 @@ class TempSensorReal(TempSensor):
     def __init__(self, time_step):
         TempSensor.__init__(self, time_step)
         
-        if config.max31855:
-            log.info("init MAX31855")
-            self.thermocouple = MAX31855(config.gpio_sensor_cs,
-                                        config.gpio_sensor_clock,
-                                        config.gpio_sensor_data,
-                                        config.temp_scale)
+        log.info("init MAX31855")
+        self.thermocouple = MAX31855(config.gpio_sensor_cs,
+                                    config.gpio_sensor_clock,
+                                    config.gpio_sensor_mosi,
+                                    config.gpi0_sensor_miso,
+                                    config.temp_scale)
 
-        if config.max31855spi:
-            log.info("init MAX31855-spi")
-            self.thermocouple = MAX31855SPI(spi_dev=SPI.SpiDev(port=0, device=config.spi_sensor_chip_id))
+        #if config.max31855:
+        #    log.info("init MAX31855")
+        #    self.thermocouple = MAX31855(config.gpio_sensor_cs,
+        #                                config.gpio_sensor_clock,
+        #                                config.gpio_sensor_data,
+        #                                config.temp_scale)
+
+        #if config.max31855spi:
+        #    log.info("init MAX31855-spi")
+        #    self.thermocouple = MAX31855SPI(spi_dev=SPI.SpiDev(port=0, device=config.spi_sensor_chip_id))
 
     def run(self):
         lasttemp = 0
