@@ -443,7 +443,7 @@ class TempSensorReal(TempSensor):
         TempSensor.__init__(self, time_step)
         
         log.info("init MAX31865")
-        self.thermocouple = MAX31865(config.gpio_sensor_cs,
+        self.temperature = MAX31865(config.gpio_sensor_cs,
                                     config.gpio_sensor_clock,
                                     config.gpio_sensor_mosi,
                                     config.gpio_sensor_miso,
@@ -465,7 +465,7 @@ class TempSensorReal(TempSensor):
 
         while True:
             try:
-                self.temperature = self.thermocouple.get()
+                self.temperature = self.temperature.get()
                 lasttemp = self.temperature
             except Exception:
                 self.temperature = lasttemp
