@@ -14,10 +14,10 @@ def main():
     # NOTE Pins use "gpio numbering", not "physical numbering"! https://www.raspberrypi.org/documentation/usage/gpio-plus-and-raspi2/README.md
     # e.g. 21 is GPIO21, not physical pin 21
     with MAX31865(
-            cs_pin=24,
-            miso_pin=19,
-            mosi_pin=21,
-            clk_pin=23,
+            cs_pin = 24,
+            miso_pin = 21,
+            mosi_pin = 19,
+            clk_pin = 23,
     ) as temp:
         while True:
             logging.info('Temperature: %0.2f°C', temp.temperature())
