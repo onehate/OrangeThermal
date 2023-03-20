@@ -25,7 +25,6 @@ oven_power      = 2000  # Average watts consumed by oven while running
 
 ##Enabled outputs
 heat_enabled = True		# Enable control for heater
-heat2_enabled = False	# Enabled control for second heater
 cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
 
@@ -39,11 +38,6 @@ heater_invert = 0 # switches the polarity of the heater control
 ### Inputs
 door_enabled = False	# Enable sensor for door open
 gpio_door = 12
-
-### Thermocouple Adapter selection:
-#   max31855 - bitbang SPI interface
-#   max31855spi - kernel SPI interface
-max31865 = 1
 
 ### Thermocouple Connection (using bitbang interfaces)
 gpio_sensor_cs = 24
@@ -73,13 +67,6 @@ PWM_MinimumOnOff_s = 1
 
 ### Maximum allowed extended period
 PWM_PeriodMax_s = 90
-
-# PWM Offset Adjustment 
-# For systems with multiple heaters and uneven heating, these factors will adjust the PWM to compensate
-# For instance, if heater 1 needs to be on more often than heater 2, make heat1adj positive and heat2adj negative
-
-heat1adj = 0		# heater 1 PWM offset, in percent
-heat2adj = 0		# heater 2 PWM offset, in percent
 
 ### Profile Adjustments for Kilns
 # must_hit_temp adjusts for systems where the heater might not be able to keep up with the profile
