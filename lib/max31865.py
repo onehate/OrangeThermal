@@ -161,7 +161,7 @@ class MAX31865(object):
     bit 0: 50/60 Hz filter select -> 0 (60Hz)
     """
 
-    def __init__(self, cs_pin, miso_pin, mosi_pin, clk_pin, number_of_wires=3):
+    def __init__(self, cs_pin, miso_pin, mosi_pin, clk_pin, number_of_wires=2):
         self.cs_pin = cs_pin
         self.miso_pin = miso_pin
         self.mosi_pin = mosi_pin
