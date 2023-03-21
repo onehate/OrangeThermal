@@ -25,13 +25,13 @@ oven_power      = 2000  # Average watts consumed by oven while running
 
 ##Enabled outputs
 heat_enabled = True		# Enable control for heater
-heat2_enabled = False		# Enable control for heater
+# heat2_enabled = False		# Enable control for heater
 cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
 
 ### Outputs
 gpio_heat = 3  # Switches zero-cross SSR
-gpio_heat2 = 26  # Switches zero-cross SSR
+# gpio_heat2 = 26  # Switches zero-cross SSR
 gpio_cool = 5  # Regulates PWM for 12V DC Blower
 gpio_air  = 7   # Switches 0-phase det. SSR
 
@@ -57,7 +57,7 @@ sensor_read_period = 1
 
 # PWM Settings
 ### Default period of PWM, in seconds
-PWM_Period_s = 1
+# PWM_Period_s = 1
 
 # The period will be extended to meet the demanded duty cycle for DC close to 0 or 100%
 # without violating the minimum onoff time, until the period reaches its max, at which point
@@ -65,17 +65,17 @@ PWM_Period_s = 1
 # This allows more precise PWM near 0 or 1 without causing rapid relay switching
 
 ### Minimum On or Off time, in seconds. 
-PWM_MinimumOnOff_s = 1
+# PWM_MinimumOnOff_s = 1
 
 ### Maximum allowed extended period
-PWM_PeriodMax_s = 90
+# PWM_PeriodMax_s = 90
 
 # PWM Offset Adjustment 
 # For systems with multiple heaters and uneven heating, these factors will adjust the PWM to compensate
 # For instance, if heater 1 needs to be on more often than heater 2, make heat1adj positive and heat2adj negative
 
-heat1adj = 0		# heater 1 PWM offset, in percent
-heat2adj = 0		# heater 2 PWM offset, in percent
+# heat1adj = 0		# heater 1 PWM offset, in percent
+# heat2adj = 0		# heater 2 PWM offset, in percent
 
 ### Profile Adjustments for Kilns
 # must_hit_temp adjusts for systems where the heater might not be able to keep up with the profile
@@ -115,4 +115,3 @@ pid_kp = 0.5  # Proportional
 temp_scale          = "c" # c = Celsius | f = Fahrenheit - Unit to display 
 time_scale_slope    = "s" # s = Seconds | m = Minutes | h = Hours - Slope displayed in temp_scale per time_scale_slope
 time_scale_profile  = "s" # s = Seconds | m = Minutes | h = Hours - Enter and view target time in time_scale_profile
-
