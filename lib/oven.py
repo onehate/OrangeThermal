@@ -399,10 +399,10 @@ class PWM(threading.Thread):
             # and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
             # exceeds the period, otherwise there will some time where neither is on.
             # Each on/off checks to make sure the the on time is not zero or one
-            #if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
-            #if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
-            #    time.sleep(self.heat1On)
-            #    if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
+            if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
+            if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
+                time.sleep(self.heat1On)
+                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
                 #When sleeping here, need to check that the required time has not already elapsed
             #    t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).total_seconds()
