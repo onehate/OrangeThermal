@@ -454,10 +454,10 @@ class TempSensorReal(TempSensor):
         #if config.max31855spi:
         #    log.info("init MAX31855-spi")
         #    self.thermocouple = MAX31855SPI(spi_dev=SPI.SpiDev(port=0, device=config.spi_sensor_chip_id))
-
+"""
     def run(self):
         lasttemp = 0
-
+"""
         while True:
             try:
                 lasttemp = logging.info('Temperature: %0.2f°C', temp.temperature())
