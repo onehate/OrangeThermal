@@ -19,6 +19,7 @@ def main():
                 config2.gpio_sensor_mosi,
                 config2.gpio_sensor_clock
     ) as temp:
+        print(temp.temperature())       
         while True:
             logging.info('Temperature: %0.2f°C', temp.temperature())
             time.sleep(1)
