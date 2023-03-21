@@ -436,7 +436,7 @@ class TempSensorReal(TempSensor):
                 config.gpio_sensor_miso,
                 config.gpio_sensor_mosi,
                 config.gpio_sensor_clock) as temp:
-            self.thermocouple = temp()
+            self.thermocouple = temp.temperature()
         #print(self.thermocouple.temperature())
             
     def run(self):
@@ -444,7 +444,7 @@ class TempSensorReal(TempSensor):
             
         while True:
             try:
-                print(self.thermocouple.temperature())
+                print(self.thermocouple)
                 self.temperature = self.thermocouple.temperature()
                 lasttemp = self.temperature
             except Exception:
