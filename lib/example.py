@@ -4,8 +4,12 @@
 
 import logging
 import time
-import config
+import sys
 from max31865 import MAX31865
+
+sys.dont_write_bytecode = True
+import config
+sys.dont_write_bytecode = False
 
 import OPi.GPIO as GPIO
 GPIO.setboard(GPIO.H616)
