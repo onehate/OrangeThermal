@@ -344,7 +344,7 @@ class TempSensorReal(TempSensor):
 
             
     def run(self):
-            
+        lasttemp = 0    
         while True:
             with MAX31865(config.gpio_sensor_cs,
                 config.gpio_sensor_miso,
@@ -354,9 +354,9 @@ class TempSensorReal(TempSensor):
             try:
                 # print(self.thermocouple)
                 self.temperature = self.thermocouple
-                # lasttemp = self.temperature
+                lasttemp = self.temperature
             except Exception:
-                # self.temperature = lasttemp
+                self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)        
 
