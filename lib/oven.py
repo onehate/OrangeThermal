@@ -250,45 +250,49 @@ class Oven (threading.Thread):
 
     def set_heat(self, value):
         if value > 0:
-            GPIO.setup(config.gpio_heat, GPIO.OUT)
             self.heat = 1.0
             if config.heater_invert:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
                 time.sleep(self.time_step * value)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 time.sleep(self.time_step * value)
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
 
         else:
             self.heat = 0.0
             if config.heater_invert:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
-        GPIO.setup(config.gpio_cool, GPIO.OUT)
         if value:
             self.cool = 1.0
             if config.cool_enabled:
+                GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.LOW)
         else:
             self.cool = 0.0
             if config.cool_enabled:
+                GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
-        GPIO.setup(config.gpio_air, GPIO.OUT)
         if value:
             self.air = 1.0
             if config.air_enabled:
+                GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.LOW)
         else:
             self.air = 0.0
             if config.air_enabled:
+                GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.HIGH)
 
     def get_state(self):
