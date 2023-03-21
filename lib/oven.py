@@ -104,7 +104,7 @@ class Oven (threading.Thread):
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
         self.PWM.setHeat1(0)
-        #self.PWM.setHeat2(0)
+        self.PWM.setHeat2(0)
         self.set_cool(False)
         self.set_air(False)
         self.pid.reset()
@@ -281,10 +281,10 @@ class Oven (threading.Thread):
             #Do these regardless of the machine state
             if self.heat > 0:
                 self.PWM.setHeat1(self.heat + config.heat1adj)
-                #self.PWM.setHeat2(self.heat + config.heat2adj)
+                self.PWM.setHeat2(self.heat + config.heat2adj)
             else:
                 self.PWM.setHeat1(0)
-                #self.PWM.setHeat2(0)
+                self.PWM.setHeat2(0)
             time.sleep(self.time_step)
 
     def set_cool(self, value):
@@ -335,18 +335,18 @@ class PWM(threading.Thread):
         self.MinimumOnOff = MinimumOnOff_s
         self.PeriodMax = PeriodMax_s
         self.Heat1 = 0
-        #self.Heat2 = 0
+        self.Heat2 = 0
         self.lock = threading.Lock()
         self.period = 1
         self.heat1On = 0
-        #self.heat2On = 0
+        self.heat2On = 0
 
     def setHeat1(self, newPWM):
         self.Heat1 = sorted((0, newPWM, 1))[1]
         self.adjPWM()
-    #def setHeat2(self, newPWM):
-    #    self.Heat2 = sorted((0, newPWM, 1))[1]
-    #    self.adjPWM()
+    def setHeat2(self, newPWM):
+        self.Heat2 = sorted((0, newPWM, 1))[1]
+        self.adjPWM()
 
     def adjPWM(self):
         period = self.PeriodSet
@@ -373,8 +373,8 @@ class PWM(threading.Thread):
         with self.lock:
             self.period = period
             self.heat1On = heat1ontime
-            #h2 = self.Heat2 * period
-            #self.heat2On = 0 if h2 < self.MinimumOnOff else period if h2 > (period - self.MinimumOnOff) else h2
+            h2 = self.Heat2 * period
+            self.heat2On = 0 if h2 < self.MinimumOnOff else period if h2 > (period - self.MinimumOnOff) else h2
 
     def run(self):
 
