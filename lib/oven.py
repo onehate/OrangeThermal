@@ -219,7 +219,7 @@ class Oven (threading.Thread):
                 #Capture the last temperature value.  This must be done before set_heat, since there is a sleep in there now.
                 last_temp = self.temp_sensor.temperature
 
-                self.heat = pid
+                self.set_heat(pid)
 
 
                 #if self.profile.is_rising(self.runtime):
