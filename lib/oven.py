@@ -22,7 +22,7 @@ except ImportError:
 
 
 try:
-    import OPi.GPIO as GPIO #converted RPi to OPi
+    import OPi.GPIO as GPIO
     GPIO.setboard(GPIO.H616)
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
@@ -107,7 +107,7 @@ class Oven (threading.Thread):
     def abort_run(self):
         self.reset()
 
-    def run_tuning(self): #, temp_target, n_cycles):
+    def run_tuning(self): #temp_target, n_cycles
         temp_target = config.tune_target_temp
         n_cycles = config.tune_cycles
 
