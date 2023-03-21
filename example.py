@@ -1,9 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8; python-indent-offset: 4; -*-
-
+import os
+import sys
 import logging
 import time
 import config
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, script_dir + '/lib/')
 
 from max31865 import MAX31865
 
