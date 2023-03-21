@@ -441,6 +441,7 @@ class TempSensorReal(TempSensor):
             while True:
                 try:
                     lasttemp = logging.info('Temperature: %0.2f°C', temp.temperature())
+                    print("last temperature: ", lasttemp)
                 except Exception:
                     self.temperature = lasttemp
                     log.exception("problem reading temp")
