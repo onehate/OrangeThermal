@@ -4,9 +4,10 @@ import random
 import datetime
 import logging
 import json
+import math
 
 import config
-import math
+
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ log.info("import MAX31865")
 import OPi.GPIO as GPIO
 GPIO.setboard(GPIO.H616)
 GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
+GPIO.setwarnings(True)
 if config.heat_enabled:
     GPIO.setup(config.gpio_heat, GPIO.OUT)
 # else:
