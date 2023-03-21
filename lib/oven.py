@@ -10,44 +10,31 @@ import math
 
 log = logging.getLogger(__name__)
 
-try:
-    from max31865 import MAX31865, MAX31865Error
-    log.info("import MAX31865")
-    sensor_available = True
+
+from max31865 import MAX31865
+log.info("import MAX31865")
 
 
-except ImportError:
-    log.exception("Could not initialize temperature sensor, using dummy values!")
-    sensor_available = False
-
-
-try:
-    import OPi.GPIO as GPIO
-    GPIO.setboard(GPIO.H616)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setwarnings(False)
-    if config.heat_enabled:
-        GPIO.setup(config.gpio_heat, GPIO.OUT)
-    else:
-        None
-    if config.cool_enabled:
-        GPIO.setup(config.gpio_cool, GPIO.OUT)
-    else:
-        None
-    if config.air_enabled:
-        GPIO.setup(config.gpio_air, GPIO.OUT)
-    else:
-        None
-    if config.door_enabled:
-        GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    else:
-        None
-    gpio_available = True
-
-except ImportError:
-    msg = "Could not initialize GPIOs!"
-    log.warning(msg)
-    gpio_available = False
+import OPi.GPIO as GPIO
+GPIO.setboard(GPIO.H616)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+if config.heat_enabled:
+    GPIO.setup(config.gpio_heat, GPIO.OUT)
+# else:
+#     None
+if config.cool_enabled:
+    GPIO.setup(config.gpio_cool, GPIO.OUT)
+# else:
+#     None
+if config.air_enabled:
+    GPIO.setup(config.gpio_air, GPIO.OUT)
+# else:
+#     None
+if config.door_enabled:
+    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# else:
+#     None
 
 
 class Oven (threading.Thread):
@@ -59,7 +46,6 @@ class Oven (threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         self.time_step = time_step
-        self.reset()
         self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
         # self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
@@ -84,7 +70,6 @@ class Oven (threading.Thread):
         self.set_cool(False)
         self.set_air(False)
         self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
-
         self.pid.reset()
 
     def run_profile(self, profile, resume = False):
@@ -100,6 +85,7 @@ class Oven (threading.Thread):
             log.info("Skipping ahead to %s", str(progress))
         else:
             self.start_time = datetime.datetime.now()
+
         self.state = Oven.STATE_RUNNING
         self.pid.reset()
         log.info("Starting")
@@ -107,7 +93,7 @@ class Oven (threading.Thread):
     def abort_run(self):
         self.reset()
 
-    def run_tuning(self): #temp_target, n_cycles
+    def run_tuning(self):
         temp_target = config.tune_target_temp
         n_cycles = config.tune_cycles
 
@@ -159,7 +145,7 @@ class Oven (threading.Thread):
                 if self.heatOn and temp > self.target and (now - self.t2).total_seconds() > 45.0:
                     #These events occur once we swing over the temperature target
                     #debounce: prevent noise from triggering false transition
-                                                            ##This might need to be longer for large systems
+                    ##This might need to be longer for large systems
                     self.heatOn = False
                     self.heat = (self.bias - self.d)
                     self.t1 = now
@@ -222,7 +208,7 @@ class Oven (threading.Thread):
                     # If the heat is on and nothing is changing, reset
                     # The direction or amount of change does not matter
                     # This prevents runaway in the event of a sensor read failure                   
-                    if temperature_count > 20:
+                    if temperature_count > 5:
                         log.info("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
                         # continue
@@ -261,48 +247,47 @@ class Oven (threading.Thread):
     def set_heat(self, value):
         if value > 0:
             self.heat = 1.0
-            if gpio_available:
-               if config.heater_invert:
-                 GPIO.setup(config.gpio_heat, GPIO.OUT)
-                 GPIO.output(config.gpio_heat, GPIO.LOW)
-                 time.sleep(self.time_step * value)
-                 GPIO.output(config.gpio_heat, GPIO.HIGH)   
-               else:
-                 GPIO.setup(config.gpio_heat, GPIO.OUT)
-                 GPIO.output(config.gpio_heat, GPIO.HIGH)
-                 time.sleep(self.time_step * value)
-                 GPIO.output(config.gpio_heat, GPIO.LOW)   
+            if config.heater_invert:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
+                GPIO.output(config.gpio_heat, GPIO.LOW)
+                time.sleep(self.time_step * value)
+                GPIO.output(config.gpio_heat, GPIO.HIGH)
+            else:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
+                GPIO.output(config.gpio_heat, GPIO.HIGH)
+                time.sleep(self.time_step * value)
+                GPIO.output(config.gpio_heat, GPIO.LOW)
+
         else:
             self.heat = 0.0
-            if gpio_available:
-               if config.heater_invert:
-                 GPIO.setup(config.gpio_heat, GPIO.OUT)
-                 GPIO.output(config.gpio_heat, GPIO.HIGH)
-               else:
-                 GPIO.setup(config.gpio_heat, GPIO.OUT)
-                 GPIO.output(config.gpio_heat, GPIO.LOW)
+            if config.heater_invert:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
+                GPIO.output(config.gpio_heat, GPIO.HIGH)
+            else:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
+                GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
         if value:
             self.cool = 1.0
-            if gpio_available and config.cool_enabled:
+            if config.cool_enabled:
                 GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.LOW)
         else:
             self.cool = 0.0
-            if gpio_available and config.cool_enabled:
+            if config.cool_enabled:
                 GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
         if value:
             self.air = 1.0
-            if gpio_available and config.air_enabled:
+            if config.air_enabled:
                 GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.LOW)
         else:
             self.air = 0.0
-            if gpio_available and config.air_enabled:
+            if config.air_enabled:
                 GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.HIGH)
 
@@ -321,7 +306,7 @@ class Oven (threading.Thread):
         return state
 
     def get_door_state(self):
-        if gpio_available and config.door_enabled:
+        if config.door_enabled:
             GPIO.setup(config.gpio_door, GPIO.IN)
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
@@ -338,11 +323,8 @@ class TempSensor(threading.Thread):
 class TempSensorReal(TempSensor):
     def __init__(self, time_step):
         TempSensor.__init__(self, time_step)
-        
         log.info("init MAX31865")
-        
 
-            
     def run(self):
         lasttemp = 0    
         while True:
@@ -350,10 +332,10 @@ class TempSensorReal(TempSensor):
                 config.gpio_sensor_miso,
                 config.gpio_sensor_mosi,
                 config.gpio_sensor_clock) as temp:
-                self.thermocouple = temp.temperature()
+                self.thermistor = temp.temperature()
             try:
-                # print(self.thermocouple)
-                self.temperature = self.thermocouple
+                # print(self.thermistor)
+                self.temperature = self.thermistor
                 lasttemp = self.temperature
             except Exception:
                 self.temperature = lasttemp
