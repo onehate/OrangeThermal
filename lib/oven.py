@@ -457,7 +457,6 @@ class TempSensorReal(TempSensor):
 
     def run(self):
         lasttemp = 0
-        print(temp.
 """
         while True:
             try:
