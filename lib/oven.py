@@ -87,21 +87,21 @@ class Oven (threading.Thread):
 
         self.pid.reset()
 
-    def run_profile(self, profile):
+    def run_profile(self, profile, resume = False):
         log.info("Running profile %s" % profile.name)
         self.profile = profile
         self.totaltime = profile.get_duration()
         self.state = Oven.STATE_RUNNING
         self.start_time = datetime.datetime.now()
 
-        # if resume:
-        #     progress = self.profile.findTemp(self.temp_sensor.temperature)
-        #     self.start_time = datetime.datetime.now() - progress
-        #     log.info("Skipping ahead to %s", str(progress))
-        # else:
-        #     self.start_time = datetime.datetime.now()
-        # self.state = Oven.STATE_RUNNING
-        # self.pid.reset()
+        if resume:
+            progress = self.profile.findTemp(self.temp_sensor.temperature)
+            self.start_time = datetime.datetime.now() - progress
+            log.info("Skipping ahead to %s", str(progress))
+        else:
+            self.start_time = datetime.datetime.now()
+        self.state = Oven.STATE_RUNNING
+        self.pid.reset()
         log.info("Starting")
 
     def abort_run(self):
