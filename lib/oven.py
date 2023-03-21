@@ -405,19 +405,19 @@ class PWM(threading.Thread):
                 if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
                 #When sleeping here, need to check that the required time has not already elapsed
-            #    t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).total_seconds()
-            #    if t > 0: time.sleep(t)
-            #    if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-            #else:										#Otherwise, 2 turns on before 1 turns off
-            #    time.sleep(pwmperiod - pwmheat2)
-            #    if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-            #    t = pwmheat1 - (datetime.datetime.now()-start).total_seconds()
-            #    if t > 0: time.sleep(t)
-            #    if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
+                t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).total_seconds()
+                if t > 0: time.sleep(t)
+                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+            else:										#Otherwise, 2 turns on before 1 turns off
+                time.sleep(pwmperiod - pwmheat2)
+                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
+                t = pwmheat1 - (datetime.datetime.now()-start).total_seconds()
+                if t > 0: time.sleep(t)
+                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
 
-            #t = pwmperiod - (datetime.datetime.now()-start).total_seconds()
-            #if t > 0: time.sleep(t)
-            #if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
+            t = pwmperiod - (datetime.datetime.now()-start).total_seconds()
+            if t > 0: time.sleep(t)
+            if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
