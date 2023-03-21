@@ -82,7 +82,7 @@ sensor_read_period = 1
 # If false, the system will not adjust the timing of the profile
 # If true, the system is guaranteed to hit the temperatures of the profile. It will wait until
 # the target is reached before moving to the next segment of the profile
-must_hit_temp = True
+must_hit_temp = False
 
 # Cone slope adj adjusts the target temperature when the segment takes longer than expected
 # It's expressed in deg C per (deg C per hour), i.e. the shift in temperature target per shift in temperature rate
