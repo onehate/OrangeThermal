@@ -457,15 +457,15 @@ class TempSensorReal(TempSensor):
 
     def run(self):
         lasttemp = 0
-"""
+
         while True:
             try:
-                lasttemp = logging.info('%0.1f', self.thermocouple.temperature())
+                lasttemp = logging.info('Temperature: %0.2f°C', temp.temperature())
             except Exception:
                 self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)
-"""
+
 class Profile():
     def __init__(self, json_data):
         obj = json.loads(json_data)
