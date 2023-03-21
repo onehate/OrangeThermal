@@ -252,10 +252,12 @@ class Oven (threading.Thread):
         if value > 0:
             self.heat = 1.0
             if config.heater_invert:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
                 time.sleep(self.time_step * value)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 time.sleep(self.time_step * value)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
@@ -263,8 +265,10 @@ class Oven (threading.Thread):
         else:
             self.heat = 0.0
             if config.heater_invert:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
+                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
@@ -326,7 +330,7 @@ class TempSensorReal(TempSensor):
         log.info("init MAX31865")
 
     def run(self):
-        last_temp = 0    
+        lasttemp = 0    
         while True:
             with MAX31865(config.gpio_sensor_cs,
                 config.gpio_sensor_miso,
@@ -336,9 +340,9 @@ class TempSensorReal(TempSensor):
             try:
                 # print(self.thermistor)
                 self.temperature = self.thermistor
-                last_temp = self.temperature
+                lasttemp = self.temperature
             except Exception:
-                self.temperature = last_temp
+                self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)        
 
