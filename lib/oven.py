@@ -421,7 +421,7 @@ class PWM(threading.Thread):
 
             t = pwmperiod - (datetime.datetime.now()-start).total_seconds()
             if t > 0: time.sleep(t)
-            if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
+            #if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
