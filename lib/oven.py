@@ -393,7 +393,7 @@ class PWM(threading.Thread):
             with self.lock:
                 pwmperiod = self.period
                 pwmheat1 = self.heat1On
-                #pwmheat2 = self.heat2On
+                pwmheat2 = self.heat2On
 
             # To improve performance, the heaters will alternate. Heater 1 turns on at the beginning of the period,
             # and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
