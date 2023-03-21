@@ -263,10 +263,12 @@ class Oven (threading.Thread):
             self.heat = 1.0
             if gpio_available:
                if config.heater_invert:
+                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                  GPIO.output(config.gpio_heat, GPIO.LOW)
                  time.sleep(self.time_step * value)
                  GPIO.output(config.gpio_heat, GPIO.HIGH)   
                else:
+                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                  GPIO.output(config.gpio_heat, GPIO.HIGH)
                  time.sleep(self.time_step * value)
                  GPIO.output(config.gpio_heat, GPIO.LOW)   
@@ -274,28 +276,34 @@ class Oven (threading.Thread):
             self.heat = 0.0
             if gpio_available:
                if config.heater_invert:
+                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                  GPIO.output(config.gpio_heat, GPIO.HIGH)
                else:
+                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                  GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
         if value:
             self.cool = 1.0
             if gpio_available and config.cool_enabled:
+                GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.LOW)
         else:
             self.cool = 0.0
             if gpio_available and config.cool_enabled:
+                GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
         if value:
             self.air = 1.0
             if gpio_available and config.air_enabled:
+                GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.LOW)
         else:
             self.air = 0.0
             if gpio_available and config.air_enabled:
+                GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.HIGH)
 
     def get_state(self):
@@ -314,6 +322,7 @@ class Oven (threading.Thread):
 
     def get_door_state(self):
         if gpio_available and config.door_enabled:
+            GPIO.setup(config.gpio_door, GPIO.IN)
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
