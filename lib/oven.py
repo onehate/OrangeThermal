@@ -428,8 +428,8 @@ class TempSensor(threading.Thread):
 
 
 class TempSensorReal(TempSensor):
-    def __init__(self, time_step):
-        TempSensor.__init__(self, time_step)
+    def __init__(self, time_step, thermocouple):
+        TempSensor.__init__(self, time_step, thermocouple)
         
         log.info("init MAX31865")
         
