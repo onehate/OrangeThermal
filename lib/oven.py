@@ -54,10 +54,10 @@ try:
         GPIO.setup(config.gpio_heat, GPIO.OUT)
     else:
         None
-    if config.heat2_enabled:
-        GPIO.setup(config.gpio_heat2, GPIO.OUT)
-    else:
-        None
+    # if config.heat2_enabled:
+    #     GPIO.setup(config.gpio_heat2, GPIO.OUT)
+    # else:
+    #     None
     if config.cool_enabled:
         GPIO.setup(config.gpio_cool, GPIO.OUT)
     else:
@@ -90,12 +90,11 @@ class Oven (threading.Thread):
         #self.reset()
         self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
-        self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
-        self.PWM.start()
+        # self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
+        # self.PWM.start()
         self.start()
-        self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
-        self.heat = 0
-        self.reset()
+        # self.heat = 0
+        # self.reset()
 
     def reset(self):
         self.profile = None
@@ -103,28 +102,34 @@ class Oven (threading.Thread):
         self.runtime = 0
         self.totaltime = 0
         self.target = 0
-        self.heatOn = False
-        self.heat = 0
+        # self.heatOn = False
+        # self.heat = 0
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
-        self.PWM.setHeat1(0)
-        self.PWM.setHeat2(0)
+        # self.PWM.setHeat1(0)
+        # self.PWM.setHeat2(0)
+        self.set_heat(False)
         self.set_cool(False)
         self.set_air(False)
-        self.pid.reset()
+        self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
 
-    def run_profile(self, profile, resume = False):
+        # self.pid.reset()
+
+    def run_profile(self, profile):
         log.info("Running profile %s" % profile.name)
         self.profile = profile
         self.totaltime = profile.get_duration()
-        if resume:
-            progress = self.profile.findTemp(self.temp_sensor.temperature)
-            self.start_time = datetime.datetime.now() - progress
-            log.info("Skipping ahead to %s", str(progress))
-        else:
-            self.start_time = datetime.datetime.now()
         self.state = Oven.STATE_RUNNING
-        self.pid.reset()
+        self.start_time = datetime.datetime.now()
+
+        # if resume:
+        #     progress = self.profile.findTemp(self.temp_sensor.temperature)
+        #     self.start_time = datetime.datetime.now() - progress
+        #     log.info("Skipping ahead to %s", str(progress))
+        # else:
+        #     self.start_time = datetime.datetime.now()
+        # self.state = Oven.STATE_RUNNING
+        # self.pid.reset()
         log.info("Starting")
 
     def abort_run(self):
@@ -160,18 +165,17 @@ class Oven (threading.Thread):
 
         while True:
 
-            now = datetime.datetime.now()
+            # now = datetime.datetime.now()
             
-            #Log Data:
-            with open("log_{0}.csv".format(now.strftime("%Y-%m-%d")), "a") as filelog:
-                filelog.write("{0},{1:.2f},{2:.1f},{3:.1f}\n".format(now.strftime("%Y-%m-%d,%H:%M:%S"), self.temp_sensor.temperature, self.target, self.heat))
+            # #Log Data:
+            # with open("log_{0}.csv".format(now.strftime("%Y-%m-%d")), "a") as filelog:
+            #     filelog.write("{0},{1:.2f},{2:.1f},{3:.1f}\n".format(now.strftime("%Y-%m-%d,%H:%M:%S"), self.temp_sensor.temperature, self.target, self.heat))
 
             self.door = self.get_door_state()
 
-
             if self.state == Oven.STATE_TUNING:
 
-                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
+                # log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
                 self.runtime = (now-self.start_time).total_seconds()
                 #This algorithm is based off that used by Marlin (3-D printer control).
                 #It essentially measures the overshoot and undershoot when turning the heat on and off,
@@ -229,36 +233,33 @@ class Oven (threading.Thread):
             elif self.state == Oven.STATE_RUNNING:
                 runtime_delta = datetime.datetime.now() - self.start_time
                 self.runtime = runtime_delta.total_seconds()
-                log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
+                # log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
                 self.target = self.profile.get_target_temperature(self.runtime, self.temp_sensor.temperature)
                 pid = self.pid.compute(self.target, self.temp_sensor.temperature)
 
-                ##Should we store the current run time in case of power failure?
-                ##Add to future release
-
-                log.debug("pid: %.3f" % pid)
+                log.info("pid: %.3f" % pid)
 
                 self.set_cool(pid <= -1)
                 if(pid > 0):
-                    ##keep this... but double check that it won't cause false failure in large systems
                     # The temp should be changing with the heat on
                     # Count the number of time_steps encountered with no change and the heat on
                     if last_temp == self.temp_sensor.temperature:
-                        temperature_count += 1 ##rename this variable
+                        temperature_count += 1
                     else:
                         temperature_count = 0
                     # If the heat is on and nothing is changing, reset
                     # The direction or amount of change does not matter
-                    # This prevents runaway in the event of a sensor read failure
-                    if temperature_count > 30:
+                    # This prevents runaway in the event of a sensor read failure                   
+                    if temperature_count > 20:
                         log.info("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
-                        continue
+                        # continue
                 else:
                     temperature_count = 0
 
-
+                #Capture the last temperature value.  This must be done before set_heat, since there is a sleep in there now.
                 last_temp = self.temp_sensor.temperature
+
                 self.heat = pid
 
 
@@ -269,7 +270,6 @@ class Oven (threading.Thread):
                 #    self.set_heat(False)
                 #    self.set_cool(self.temp_sensor.temperature > self.target)
 
-
                 # if self.temp_sensor.temperature > 200:
                     # self.set_air(False)
                 # elif self.temp_sensor.temperature < 180:
@@ -278,18 +278,33 @@ class Oven (threading.Thread):
                 if self.runtime >= self.totaltime:
                     self.reset()
                     continue
-            else:  # Not tuning or running - make sure oven is off
-                self.heat = 0
+                else:  # Not tuning or running - make sure oven is off
+                    self.heat = 0
 
-
-            #Do these regardless of the machine state
             if self.heat > 0:
-                self.PWM.setHeat1(self.heat + config.heat1adj)
-                self.PWM.setHeat2(self.heat + config.heat2adj)
+                time.sleep(self.time_step * (1 - pid))
             else:
-                self.PWM.setHeat1(0)
-                self.PWM.setHeat2(0)
-            time.sleep(self.time_step)
+                time.sleep(self.time_step)
+
+    def set_heat(self, value):
+        if value > 0:
+            self.heat = 1.0
+            if gpio_available:
+               if config.heater_invert:
+                 GPIO.output(config.gpio_heat, GPIO.LOW)
+                 time.sleep(self.time_step * value)
+                 GPIO.output(config.gpio_heat, GPIO.HIGH)   
+               else:
+                 GPIO.output(config.gpio_heat, GPIO.HIGH)
+                 time.sleep(self.time_step * value)
+                 GPIO.output(config.gpio_heat, GPIO.LOW)   
+        else:
+            self.heat = 0.0
+            if gpio_available:
+               if config.heater_invert:
+                 GPIO.output(config.gpio_heat, GPIO.HIGH)
+               else:
+                 GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
         if value:
@@ -317,7 +332,7 @@ class Oven (threading.Thread):
             'temperature': self.temp_sensor.temperature,
             'target': self.target,
             'state': self.state,
-            'heat': sorted((0, self.heat, 1))[1],
+            'heat': self.heat,
             'cool': self.cool,
             'air': self.air,
             'totaltime': self.totaltime,
@@ -331,97 +346,6 @@ class Oven (threading.Thread):
         else:
             return "UNKNOWN"
 
-class PWM(threading.Thread):
-    def __init__(self, Period_s, MinimumOnOff_s, PeriodMax_s):
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.PeriodSet = Period_s
-        self.MinimumOnOff = MinimumOnOff_s
-        self.PeriodMax = PeriodMax_s
-        self.Heat1 = 0
-        self.Heat2 = 0
-        self.lock = threading.Lock()
-        self.period = 1
-        self.heat1On = 0
-        self.heat2On = 0
-
-    def setHeat1(self, newPWM):
-        self.Heat1 = sorted((0, newPWM, 1))[1]
-        self.adjPWM()
-    def setHeat2(self, newPWM):
-        self.Heat2 = sorted((0, newPWM, 1))[1]
-        self.adjPWM()
-
-    def adjPWM(self):
-        period = self.PeriodSet
-
-        ##only do period adjustments for heat1? makes it simpler
-        #Calculate on/off time of each cycle
-        heat1ontime = self.Heat1 * period
-        heat1offtime = period - heat1ontime
-        if (heat1ontime < self.MinimumOnOff):
-            #the on time is under the minimum. First try extending the period
-            if (self.Heat1 * self.PeriodMax >= self.MinimumOnOff):
-                period = self.MinimumOnOff / self.Heat1
-                heat1ontime = self.MinimumOnOff
-            else:
-                # That didn't work; just turn the heater off
-                heat1ontime = 0
-        elif (heat1offtime < self.MinimumOnOff):
-            if ((1-self.Heat1) * self.PeriodMax >= self.MinimumOnOff):
-                period = self.MinimumOnOff / (1-self.Heat1)
-                heat1ontime = period - self.MinimumOnOff
-            else:
-                heat1ontime = period
-
-        with self.lock:
-            self.period = period
-            self.heat1On = heat1ontime
-            h2 = self.Heat2 * period
-            self.heat2On = 0 if h2 < self.MinimumOnOff else period if h2 > (period - self.MinimumOnOff) else h2
-
-    def run(self):
-
-        if config.heater_invert:
-            ON = GPIO.LOW
-            OFF = GPIO.HIGH
-        else:
-            ON = GPIO.HIGH
-            OFF = GPIO.LOW
-
-
-        while True:
-            start = datetime.datetime.now()
-            #grab our values here in case they change mid-period
-            #Using a lock to prevent values being acquired while they're changed
-            with self.lock:
-                pwmperiod = self.period
-                pwmheat1 = self.heat1On
-                pwmheat2 = self.heat2On
-
-            # To improve performance, the heaters will alternate. Heater 1 turns on at the beginning of the period,
-            # and heater 2 turns off at the end of the period. They may overlap in the middle if the sum of the times
-            # exceeds the period, otherwise there will some time where neither is on.
-            # Each on/off checks to make sure the the on time is not zero or one
-            if pwmheat1 != 0: GPIO.output(config.gpio_heat, ON)
-            if (pwmheat1 <= pwmperiod - pwmheat2):		#In this case, 1 turns off before 2 turns on
-                time.sleep(self.heat1On)
-                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
-
-                #When sleeping here, need to check that the required time has not already elapsed
-                t = (pwmperiod - pwmheat2) - (datetime.datetime.now()-start).total_seconds()
-                if t > 0: time.sleep(t)
-                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-            else:										#Otherwise, 2 turns on before 1 turns off
-                time.sleep(pwmperiod - pwmheat2)
-                if pwmheat2 != 0: GPIO.output(config.gpio_heat2, ON)
-                t = pwmheat1 - (datetime.datetime.now()-start).total_seconds()
-                if t > 0: time.sleep(t)
-                if pwmheat1 != pwmperiod: GPIO.output(config.gpio_heat, OFF)
-
-            t = pwmperiod - (datetime.datetime.now()-start).total_seconds()
-            if t > 0: time.sleep(t)
-            #if pwmheat2 != pwmperiod: GPIO.output(config.gpio_heat2, OFF)
 
 class TempSensor(threading.Thread):
     def __init__(self, time_step):
@@ -439,7 +363,6 @@ class TempSensorReal(TempSensor):
 
             
     def run(self):
-        lasttemp = 0          
             
         while True:
             with MAX31865(config.gpio_sensor_cs,
@@ -448,11 +371,11 @@ class TempSensorReal(TempSensor):
                 config.gpio_sensor_clock) as temp:
                 self.thermocouple = temp.temperature()
             try:
-                print(self.thermocouple)
+                # print(self.thermocouple)
                 self.temperature = self.thermocouple
-                lasttemp = self.temperature
+                # lasttemp = self.temperature
             except Exception:
-                self.temperature = lasttemp
+                # self.temperature = lasttemp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)        
 
