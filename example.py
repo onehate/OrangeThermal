@@ -1,15 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8; python-indent-offset: 4; -*-
 
-import os
 import logging
 import time
-import sys
-from max31865 import MAX31865
-
-sys.dont_write_bytecode = True
 import config
-sys.dont_write_bytecode = False
+
+from max31865 import MAX31865
 
 import OPi.GPIO as GPIO
 GPIO.setboard(GPIO.H616)
