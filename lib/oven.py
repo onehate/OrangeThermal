@@ -433,10 +433,10 @@ class TempSensorReal(TempSensor):
         
         log.info("init MAX31865")
         
-        with MAX31865(config2.gpio_sensor_cs,
-                config2.gpio_sensor_miso,
-                config2.gpio_sensor_mosi,
-                config2.gpio_sensor_clock) as temp:
+        with MAX31865(config.gpio_sensor_cs,
+                config.gpio_sensor_miso,
+                config.gpio_sensor_mosi,
+                config.gpio_sensor_clock) as temp:
             print(temp.temperature())
         """
         self.thermocouple = MAX31865(config.gpio_sensor_cs,
