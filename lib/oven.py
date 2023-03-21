@@ -437,7 +437,7 @@ class TempSensorReal(TempSensor):
                 config2.gpio_sensor_miso,
                 config2.gpio_sensor_mosi,
                 config2.gpio_sensor_clock) as temp:
-        print(temp.temperature())
+            print(temp.temperature())
         """
         self.thermocouple = MAX31865(config.gpio_sensor_cs,
                                      config.gpio_sensor_miso,
