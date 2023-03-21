@@ -249,6 +249,10 @@ class Oven (threading.Thread):
                 time.sleep(self.time_step)
 
     def set_heat(self, value):
+        import OPi.GPIO as GPIO
+        GPIO.setboard(GPIO.H616)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
         if value > 0:
             self.heat = 1.0
             if config.heater_invert:
