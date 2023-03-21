@@ -249,19 +249,14 @@ class Oven (threading.Thread):
                 time.sleep(self.time_step)
 
     def set_heat(self, value):
-        import OPi.GPIO as GPIO
-        GPIO.setboard(GPIO.H616)
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setwarnings(False)
+        GPIO.setup(config.gpio_heat, GPIO.OUT)
         if value > 0:
             self.heat = 1.0
             if config.heater_invert:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
                 time.sleep(self.time_step * value)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 time.sleep(self.time_step * value)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
@@ -269,34 +264,28 @@ class Oven (threading.Thread):
         else:
             self.heat = 0.0
             if config.heater_invert:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
-        if value:
-            self.cool = 1.0
-            if config.cool_enabled:
-                GPIO.setup(config.gpio_cool, GPIO.OUT)
+        GPIO.setup(config.gpio_cool, GPIO.OUT)
+        if config.cool_enabled:
+            if value:
+                self.cool = 1.0
                 GPIO.output(config.gpio_cool, GPIO.LOW)
-        else:
-            self.cool = 0.0
-            if config.cool_enabled:
-                GPIO.setup(config.gpio_cool, GPIO.OUT)
+            else:
+                self.cool = 0.0
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
-        if value:
-            self.air = 1.0
-            if config.air_enabled:
-                GPIO.setup(config.gpio_air, GPIO.OUT)
+        GPIO.setup(config.gpio_air, GPIO.OUT)
+        if config.air_enabled:
+            if value:
+                self.air = 1.0
                 GPIO.output(config.gpio_air, GPIO.LOW)
-        else:
-            self.air = 0.0
-            if config.air_enabled:
-                GPIO.setup(config.gpio_air, GPIO.OUT)
+            else:
+                self.air = 0.0
                 GPIO.output(config.gpio_air, GPIO.HIGH)
 
     def get_state(self):
