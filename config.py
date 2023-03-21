@@ -35,7 +35,7 @@ gpio_heat2 = 26  # Switches zero-cross SSR
 gpio_cool = 5  # Regulates PWM for 12V DC Blower
 gpio_air  = 7   # Switches 0-phase det. SSR
 
-heater_invert = 1 # switches the polarity of the heater control
+heater_invert = 0 # switches the polarity of the heater control
 
 ### Inputs
 door_enabled = False	# Enable sensor for door open
