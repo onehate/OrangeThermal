@@ -426,7 +426,6 @@ class TempSensor(threading.Thread):
         self.temperature = 0
         self.time_step = time_step
 
-
 class TempSensorReal(TempSensor):
     def __init__(self, time_step):
         TempSensor.__init__(self, time_step)
@@ -438,54 +437,18 @@ class TempSensorReal(TempSensor):
                 config.gpio_sensor_mosi,
                 config.gpio_sensor_clock) as self.thermocouple:
             print(self.thermocouple.temperature())
-            while True:
-                try:
-                    lasttemp = logging.info('Temperature: %0.2f°C', self.thermocouple.temperature())
-                    print("last temperature: ", lasttemp)
-                except Exception:
-                    self.temperature = lasttemp
-                    log.exception("problem reading temp")
-                time.sleep(self.time_step)        
-        
-"""        
-        with MAX31865(config.gpio_sensor_cs,
-                config.gpio_sensor_miso,
-                config.gpio_sensor_mosi,
-                config.gpio_sensor_clock) as self.thermocouple:
-            print(self.thermocouple.temperature())
-            while True:
-                try:
-                    lasttemp = logging.info('Temperature: %0.2f°C', self.thermocouple.temperature())
-                    print("last temperature: ", lasttemp)
-                except Exception:
-                    self.temperature = lasttemp
-                    log.exception("problem reading temp")
-                time.sleep(self.time_step)
- """           
-
-        #if config.max31855:
-        #    log.info("init MAX31855")
-        #    self.thermocouple = MAX31855(config.gpio_sensor_cs,
-        #                                config.gpio_sensor_clock,
-        #                                config.gpio_sensor_data,
-        #                                config.temp_scale)
-
-        #if config.max31855spi:
-        #    log.info("init MAX31855-spi")
-        #    self.thermocouple = MAX31855SPI(spi_dev=SPI.SpiDev(port=0, device=config.spi_sensor_chip_id))
-"""
+            
     def run(self):
-        lasttemp = 0
-
+        lasttemp = 0          
+            
         while True:
             try:
-                self.temperature = self.temp.temperature()
-                lasttemp = self.temperature
+                lasttemp = logging.info('Temperature: %0.2f°C', self.thermocouple.temperature())
+                print("last temperature: ", lasttemp)
             except Exception:
                 self.temperature = lasttemp
                 log.exception("problem reading temp")
-            time.sleep(self.time_step)
-"""
+            time.sleep(self.time_step)        
 
 class Profile():
     def __init__(self, json_data):
