@@ -241,9 +241,9 @@ class Oven (threading.Thread):
                     self.heat = 0
 
             if self.heat > 0:
-                if pid > 1:
-                    time.sleep(self.time_step)
-                else:
+                if pid > 1:                         #REMOVE THESE ONCE GPIO WORKS?
+                    time.sleep(self.time_step)      #-----------
+                else:                               #-----------
                     time.sleep(self.time_step * (1 - pid))
             else:
                 time.sleep(self.time_step)
