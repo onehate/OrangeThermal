@@ -241,9 +241,9 @@ class Oven (threading.Thread):
                     self.heat = 0
 
             if self.heat > 0:
-                if pid > 1:                         #REMOVE THESE ONCE GPIO WORKS?
-                    time.sleep(self.time_step)      #-----------
-                else:                               #-----------
+                if pid > 1:                     #REMOVE THESE AFTER GPIO FIX?
+                    time.sleep(self.time_step)  #----------------------------
+                else:                           #----------------------------
                     time.sleep(self.time_step * (1 - pid))
             else:
                 time.sleep(self.time_step)
@@ -270,22 +270,24 @@ class Oven (threading.Thread):
 
     def set_cool(self, value):
         GPIO.setup(config.gpio_cool, GPIO.OUT)
-        if config.cool_enabled:
-            if value:
-                self.cool = 1.0
+        if value:
+            self.cool = 1.0
+            if config.cool_enabled:
                 GPIO.output(config.gpio_cool, GPIO.LOW)
-            else:
-                self.cool = 0.0
+        else:
+            self.cool = 0.0
+            if config.cool_enabled:
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
 
     def set_air(self, value):
         GPIO.setup(config.gpio_air, GPIO.OUT)
-        if config.air_enabled:
-            if value:
-                self.air = 1.0
+        if value:
+            self.air = 1.0
+            if config.air_enabled:
                 GPIO.output(config.gpio_air, GPIO.LOW)
-            else:
-                self.air = 0.0
+        else:
+            self.air = 0.0
+            if config.air_enabled:
                 GPIO.output(config.gpio_air, GPIO.HIGH)
 
     def get_state(self):
