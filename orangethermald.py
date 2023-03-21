@@ -8,8 +8,10 @@ import json
 import bottle
 import gevent
 import geventwebsocket
+from geventwebsocket import WebSocketError
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
+from geventwebsocket import WebSocketError
 
 try:
     sys.dont_write_bytecode = True
