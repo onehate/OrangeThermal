@@ -428,15 +428,15 @@ class TempSensor(threading.Thread):
 
 
 class TempSensorReal(TempSensor):
-    def __init__(self, time_step, thermocouple):
-        TempSensor.__init__(self, time_step, thermocouple)
+    def __init__(self, time_step):
+        TempSensor.__init__(self, time_step)
         
         log.info("init MAX31865")
         
-        self.thermocouple = MAX31865(config.gpio_sensor_cs,
-                                     config.gpio_sensor_miso,
-                                     config.gpio_sensor_mosi,
-                                     config.gpio_sensor_clock)
+        with MAX31865(config.gpio_sensor_cs,
+                config.gpio_sensor_miso,
+                config.gpio_sensor_mosi,
+                config.gpio_sensor_clock) as self.thermocouple:
         print(self.thermocouple.temperature())
         while True:
             try:
