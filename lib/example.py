@@ -4,9 +4,15 @@
 
 import logging
 import time
-import config2
+import config
 from max31865 import MAX31865
 
+import OPi.GPIO as GPIO
+GPIO.setboard(GPIO.H616)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+
+GPIO.setup(config.gpio_heat, GPIO.OUT)
 
 def main():
     """
@@ -22,8 +28,11 @@ def main():
         print(temp.temperature())       
         while True:
             logging.info('Temperature: %0.2f°C', temp.temperature())
+            GPIO.setup(config.gpio_heat, GPIO.OUT)
+            GPIO.output(config.gpio_heat, GPIO.HIGH)
+            time.sleep(3)
+            GPIO.output(config.gpio_heat, GPIO.LOW)
             time.sleep(1)
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
