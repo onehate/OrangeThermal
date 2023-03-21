@@ -437,15 +437,15 @@ class TempSensorReal(TempSensor):
                 config.gpio_sensor_miso,
                 config.gpio_sensor_mosi,
                 config.gpio_sensor_clock) as self.thermocouple:
-        print(self.thermocouple.temperature())
-        while True:
-            try:
-                lasttemp = logging.info('Temperature: %0.2f°C', self.thermocouple.temperature())
-                print("last temperature: ", lasttemp)
-            except Exception:
-                self.temperature = lasttemp
-                log.exception("problem reading temp")
-            time.sleep(self.time_step)        
+            print(self.thermocouple.temperature())
+            while True:
+                try:
+                    lasttemp = logging.info('Temperature: %0.2f°C', self.thermocouple.temperature())
+                    print("last temperature: ", lasttemp)
+                except Exception:
+                    self.temperature = lasttemp
+                    log.exception("problem reading temp")
+                time.sleep(self.time_step)        
         
 """        
         with MAX31865(config.gpio_sensor_cs,
