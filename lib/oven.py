@@ -443,8 +443,8 @@ class TempSensorReal(TempSensor):
             
         while True:
             try:
+                print(self.thermocouple.temperature())
                 self.temperature = self.thermocouple.temperature()
-                print(self.temperature)
                 lasttemp = self.temperature
             except Exception:
                 self.temperature = lasttemp
