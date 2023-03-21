@@ -54,6 +54,10 @@ try:
         GPIO.setup(config.gpio_heat, GPIO.OUT)
     else:
         None
+    if config.heat2_enabled:
+        GPIO.setup(config.gpio_heat2, GPIO.OUT)
+    else:
+        None
     if config.cool_enabled:
         GPIO.setup(config.gpio_cool, GPIO.OUT)
     else:
