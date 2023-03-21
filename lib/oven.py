@@ -59,14 +59,14 @@ class Oven (threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         self.time_step = time_step
-        #self.reset()
+        self.reset()
         self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
         # self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
         # self.PWM.start()
         self.start()
-        # self.heat = 0
-        # self.reset()
+        self.heat = 0
+        self.reset()
 
     def reset(self):
         self.profile = None
@@ -74,8 +74,8 @@ class Oven (threading.Thread):
         self.runtime = 0
         self.totaltime = 0
         self.target = 0
-        # self.heatOn = False
-        # self.heat = 0
+        self.heatOn = False
+        self.heat = 0
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
         # self.PWM.setHeat1(0)
@@ -85,7 +85,7 @@ class Oven (threading.Thread):
         self.set_air(False)
         self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
 
-        # self.pid.reset()
+        self.pid.reset()
 
     def run_profile(self, profile):
         log.info("Running profile %s" % profile.name)
@@ -147,7 +147,7 @@ class Oven (threading.Thread):
 
             if self.state == Oven.STATE_TUNING:
 
-                # log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
+                #log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
                 self.runtime = (now-self.start_time).total_seconds()
                 #This algorithm is based off that used by Marlin (3-D printer control).
                 #It essentially measures the overshoot and undershoot when turning the heat on and off,
