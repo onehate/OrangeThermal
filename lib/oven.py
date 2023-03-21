@@ -19,23 +19,23 @@ log.info("import MAX31865")
 import OPi.GPIO as GPIO
 GPIO.setboard(GPIO.H616)
 GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(True)
+GPIO.setwarnings(False)
 if config.heat_enabled:
     GPIO.setup(config.gpio_heat, GPIO.OUT)
-# else:
-#     None
+else:
+    None
 if config.cool_enabled:
     GPIO.setup(config.gpio_cool, GPIO.OUT)
-# else:
-#     None
+else:
+    None
 if config.air_enabled:
     GPIO.setup(config.gpio_air, GPIO.OUT)
-# else:
-#     None
+else:
+    None
 if config.door_enabled:
     GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-# else:
-#     None
+else:
+    None
 
 
 class Oven (threading.Thread):
@@ -252,12 +252,10 @@ class Oven (threading.Thread):
         if value > 0:
             self.heat = 1.0
             if config.heater_invert:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
                 time.sleep(self.time_step * value)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 time.sleep(self.time_step * value)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
@@ -265,10 +263,8 @@ class Oven (threading.Thread):
         else:
             self.heat = 0.0
             if config.heater_invert:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
             else:
-                GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
 
     def set_cool(self, value):
@@ -330,7 +326,7 @@ class TempSensorReal(TempSensor):
         log.info("init MAX31865")
 
     def run(self):
-        lasttemp = 0    
+        last_temp = 0    
         while True:
             with MAX31865(config.gpio_sensor_cs,
                 config.gpio_sensor_miso,
@@ -340,9 +336,9 @@ class TempSensorReal(TempSensor):
             try:
                 # print(self.thermistor)
                 self.temperature = self.thermistor
-                lasttemp = self.temperature
+                last_temp = self.temperature
             except Exception:
-                self.temperature = lasttemp
+                self.temperature = last_temp
                 log.exception("problem reading temp")
             time.sleep(self.time_step)        
 
