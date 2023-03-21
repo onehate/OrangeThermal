@@ -443,8 +443,8 @@ class TempSensorReal(TempSensor):
             
         while True:
             try:
-                lasttemp = logging.info('Temperature: %0.2f°C', self.thermocouple.temperature())
-                print("last temperature: ", lasttemp)
+                self.temperature = self.thermocouple.temperature()
+                lasttemp = self.temperature
             except Exception:
                 self.temperature = lasttemp
                 log.exception("problem reading temp")
