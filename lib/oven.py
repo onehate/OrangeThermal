@@ -437,7 +437,7 @@ class TempSensorReal(TempSensor):
                 config.gpio_sensor_mosi,
                 config.gpio_sensor_clock)
         self.thermocouple = temp
-        print(temp)
+        print(temp())
         #print(self.thermocouple.temperature())
             
     def run(self):
