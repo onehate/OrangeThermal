@@ -19,26 +19,25 @@ oven_power      = 2000  # Average watts consumed by oven while running
 
 ########################################################################
 #
-#   GPIO Setup (Orange Pi Zero 2 GPIO.BOARD numbering) - DO NOT FORGET
+#   GPIO Setup (Orange Pi Zero 2 GPIO.BOARD numbering)
 #
 
 
-##Enabled outputs
+##Enabled outputs/inputs
 heat_enabled = True		# Enable control for heater
-# heat2_enabled = False		# Enable control for heater
 cool_enabled = False	# Enable control for cooler (exterior fan, etc.)
 air_enabled = False		# Enable control for internal air circulation (interior fan)
+door_enabled = False	# Enable sensor for door open
+
 
 ### Outputs
 gpio_heat = 7  # Switches zero-cross SSR
-# gpio_heat2 = 26  # Switches zero-cross SSR
 gpio_cool = 11  # Regulates PWM for 12V DC Blower
 gpio_air  = 13   # Switches 0-phase det. SSR
 
 heater_invert = 0 # switches the polarity of the heater control
 
 ### Inputs
-door_enabled = False	# Enable sensor for door open
 gpio_door = 12
 
 ### Thermocouple Connection (using bitbang interfaces)
@@ -53,29 +52,6 @@ spi_sensor_chip_id = 0
 ### amount of time, in seconds, to wait between reads of the thermocouple
 # This is also the rate of the control loop?
 sensor_read_period = 1
-
-
-# PWM Settings
-### Default period of PWM, in seconds
-# PWM_Period_s = 1
-
-# The period will be extended to meet the demanded duty cycle for DC close to 0 or 100%
-# without violating the minimum onoff time, until the period reaches its max, at which point
-# the system will go full off or on
-# This allows more precise PWM near 0 or 1 without causing rapid relay switching
-
-### Minimum On or Off time, in seconds. 
-# PWM_MinimumOnOff_s = 1
-
-### Maximum allowed extended period
-# PWM_PeriodMax_s = 90
-
-# PWM Offset Adjustment 
-# For systems with multiple heaters and uneven heating, these factors will adjust the PWM to compensate
-# For instance, if heater 1 needs to be on more often than heater 2, make heat1adj positive and heat2adj negative
-
-# heat1adj = 0		# heater 1 PWM offset, in percent
-# heat2adj = 0		# heater 2 PWM offset, in percent
 
 ### Profile Adjustments for Kilns
 # must_hit_temp adjusts for systems where the heater might not be able to keep up with the profile

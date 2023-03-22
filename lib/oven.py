@@ -144,7 +144,7 @@ class Oven (threading.Thread):
                 temp = self.temp_sensor.temperature
                 self.maxtemp = max(self.maxtemp, temp)
                 self.mintemp = min(self.mintemp, temp)
-                if self.heatOn and temp > self.target and (now - self.t2).total_seconds() > 45.0:
+                if self.heatOn and temp > self.target and (now - self.t2).total_seconds() > 15.0:
                     #These events occur once we swing over the temperature target
                     #debounce: prevent noise from triggering false transition
                     ##This might need to be longer for large systems
@@ -155,7 +155,7 @@ class Oven (threading.Thread):
                     self.maxtemp = temp
                     log.info("Over Target, setting heat to %.2f", self.heat)
 
-                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds() > 45.0:
+                if self.heatOn == False and temp < self.target and (now - self.t1).total_seconds() > 15.0:
                     #This occurs when we swing below the target
                     self.heatOn = True
                     self.t2 = now
@@ -210,7 +210,7 @@ class Oven (threading.Thread):
                     # If the heat is on and nothing is changing, reset
                     # The direction or amount of change does not matter
                     # This prevents runaway in the event of a sensor read failure                   
-                    if temperature_count > 10:
+                    if temperature_count > 5:
                         log.info("Error reading sensor, oven temp not responding to heat.")
                         self.reset()
                         # continue
