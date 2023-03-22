@@ -325,7 +325,6 @@ class Oven (threading.Thread):
     def get_door_state(self):
         if config.door_enabled:
             GPIO.setup(config.gpio_door, GPIO.IN)
-            print("door")
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
