@@ -255,24 +255,30 @@ class Oven (threading.Thread):
             if config.heater_invert:
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
+                print("inverted-off")
                 time.sleep(self.time_step * value)
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
+                print("inverted-on")
             else:
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
+                print("on")
                 time.sleep(self.time_step * value)
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
+                print("off")
 
         else:
             self.heat = 0.0
             if config.heater_invert:
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
+                print("else-on")
             else:
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
+                print("else-off")
 
     def set_cool(self, value):
         if value:
