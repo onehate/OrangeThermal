@@ -19,7 +19,7 @@ class OvenWatcher(threading.Thread):
     def run(self):
         while True:
             oven_state = self.oven.get_state()
-            
+            print(oven_state)
             if oven_state.get("state") == Oven.STATE_RUNNING or oven_state.get("state") == Oven.STATE_TUNING:
                 if self.log_skip_counter==0:
                     self.last_log.append(oven_state)
