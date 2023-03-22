@@ -20,10 +20,9 @@ import OPi.GPIO as GPIO
 GPIO.setboard(GPIO.H616)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
-if config.heat_enabled:
-    GPIO.setup(config.gpio_heat, GPIO.OUT)
-else:
-    None
+
+GPIO.setup(config.gpio_heat, GPIO.OUT)
+
 if config.cool_enabled:
     GPIO.setup(config.gpio_cool, GPIO.OUT)
 else:
