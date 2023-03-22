@@ -52,6 +52,7 @@ class Oven (threading.Thread):
         # self.PWM.start()
         self.start()
         self.heat = 0
+        self.target = 0
         self.reset()
 
     def reset(self):
