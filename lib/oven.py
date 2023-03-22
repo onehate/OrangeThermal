@@ -286,11 +286,13 @@ class Oven (threading.Thread):
             if config.cool_enabled:
                 GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.LOW)
+                print("cool-off")
         else:
             self.cool = 0.0
             if config.cool_enabled:
                 GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
+                print("cool-on")
 
     def set_air(self, value):
         if value:
@@ -298,11 +300,13 @@ class Oven (threading.Thread):
             if config.air_enabled:
                 GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.LOW)
+                print("air-off")
         else:
             self.air = 0.0
             if config.air_enabled:
                 GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.HIGH)
+                print("air-on")
 
     def get_state(self):
         state = {
@@ -321,6 +325,7 @@ class Oven (threading.Thread):
     def get_door_state(self):
         if config.door_enabled:
             GPIO.setup(config.gpio_door, GPIO.IN)
+            print("door")
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
