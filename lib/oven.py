@@ -123,8 +123,8 @@ class Oven (threading.Thread):
         pid = 0
 
         while True:
-            print(f"temp_count = {temperature_count}")
-            print(f"last temp and sensor temp: {last_temp}, {self.temp_sensor.temperature}")
+            #print(f"temp_count = {temperature_count}")
+            #print(f"last temp and sensor temp: {last_temp}, {self.temp_sensor.temperature}")
             now = datetime.datetime.now()
             
             #Log Data:
@@ -132,7 +132,7 @@ class Oven (threading.Thread):
                 filelog.write("{0},{1:.2f},{2:.1f},{3:.1f}\n".format(now.strftime("%Y-%m-%d,%H:%M:%S"), self.temp_sensor.temperature, self.target, self.heat))
 
             self.door = self.get_door_state()
-            print(f"state and heatOn:{self.state}, {self.heatOn}")
+            #print(f"state and heatOn:{self.state}, {self.heatOn}")
             if self.state == Oven.STATE_TUNING:
 
                 log.debug("running at %.1f deg C (Target: %.1f) , heat %.2f, cool %.2f, air %.2f, door %s (%.1fs/%.0f)" % (self.temp_sensor.temperature, self.target, self.heat, self.cool, self.air, self.door, self.runtime, self.totaltime))
