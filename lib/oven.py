@@ -200,6 +200,7 @@ class Oven (threading.Thread):
                 log.info("pid: %.3f" % pid)
 
                 self.set_cool(pid <= -1)
+                
                 if(pid > 0):
                     # The temp should be changing with the heat on
                     # Count the number of time_steps encountered with no change and the heat on
@@ -242,10 +243,10 @@ class Oven (threading.Thread):
                     self.heat = 0
 
             if self.heat > 0:
-                if pid > 1:                     #REMOVE THESE AFTER GPIO FIX?
-                    time.sleep(self.time_step)  #----------------------------
-                else:                           #----------------------------
-                    time.sleep(self.time_step * (1 - pid))
+                # if pid > 1:                     #REMOVE THESE AFTER GPIO FIX?
+                #     time.sleep(self.time_step)  #----------------------------
+                # else:                           #----------------------------
+                time.sleep(self.time_step * (1 - pid))
             else:
                 time.sleep(self.time_step)
 
