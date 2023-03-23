@@ -16,6 +16,7 @@ from geventwebsocket import WebSocketError
 try:
     sys.dont_write_bytecode = True
     import config
+
     sys.dont_write_bytecode = False
 except:
     print("Could not import config file.")
@@ -27,7 +28,7 @@ log = logging.getLogger("orangethermald")
 log.info("Starting orangethermald")
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, script_dir + '/lib/')
+sys.path.insert(0, script_dir + "/lib/")
 profile_path = os.path.join(script_dir, "storage", "profiles")
 
 from oven import Oven, Profile
@@ -38,26 +39,29 @@ oven = Oven()
 ovenWatcher = OvenWatcher(oven)
 
 
-@app.route('/')
+@app.route("/")
 def index():
-    return bottle.redirect('/orangethermal/index.html')
+    return bottle.redirect("/orangethermal/index.html")
 
 
-@app.route('/orangethermal/:filename#.*#')
+@app.route("/orangethermal/:filename#.*#")
 def send_static(filename):
     log.debug("serving %s" % filename)
-    return bottle.static_file(filename, root=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "public"))
+    return bottle.static_file(
+        filename,
+        root=os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), "public"),
+    )
 
 
 def get_websocket_from_request():
     env = bottle.request.environ
-    wsock = env.get('wsgi.websocket')
+    wsock = env.get("wsgi.websocket")
     if not wsock:
-        abort(400, 'Expected WebSocket request.')
+        abort(400, "Expected WebSocket request.")
     return wsock
 
 
-@app.route('/control')
+@app.route("/control")
 def handle_control():
     wsock = get_websocket_from_request()
     log.info("websocket (control) opened")
@@ -68,27 +72,27 @@ def handle_control():
             msgdict = json.loads(message)
             if msgdict.get("cmd") == "RUN":
                 log.info("RUN command received")
-                profile_obj = msgdict.get('profile')
+                profile_obj = msgdict.get("profile")
                 if profile_obj:
                     profile_json = json.dumps(profile_obj)
                     profile = Profile(profile_json)
-                do_resume = msgdict.get('resume')
+                do_resume = msgdict.get("resume")
                 oven.run_profile(profile, do_resume)
                 ovenWatcher.record(profile)
             elif msgdict.get("cmd") == "STOP":
                 log.info("Stop command received")
                 oven.abort_run()
             elif msgdict.get("cmd") == "TUNE":
-                 log.info("TUNE command received")
-                 oven.run_tuning()
-                 ovenWatcher.record()
+                log.info("TUNE command received")
+                oven.run_tuning()
+                ovenWatcher.record()
         except WebSocketError:
             log.info("Web socket error!")
             break
     log.info("websocket (control) closed")
 
 
-@app.route('/storage')
+@app.route("/storage")
 def handle_storage():
     wsock = get_websocket_from_request()
     log.info("websocket (storage) opened")
@@ -100,7 +104,7 @@ def handle_storage():
             log.debug("websocket (storage) received: %s" % message)
             try:
                 msgdict = json.loads(message)
-                #msgdict["force"] = True                            # To enable forced overwrite of profiles 
+                # msgdict["force"] = True                            # To enable forced overwrite of profiles
             except:
                 msgdict = {}
 
@@ -109,22 +113,22 @@ def handle_storage():
                 wsock.send(get_profiles())
             elif msgdict.get("cmd") == "DELETE":
                 log.info("DELETE command received")
-                profile_obj = msgdict.get('profile')
+                profile_obj = msgdict.get("profile")
                 if delete_profile(profile_obj):
                     msgdict["resp"] = "OK"
                 wsock.send(json.dumps(msgdict))
-                #wsock.send(get_profiles())
+                # wsock.send(get_profiles())
             elif msgdict.get("cmd") == "PUT":
                 log.info("PUT command received")
-                profile_obj = msgdict.get('profile')
-                force = msgdict.get('force', False)
+                profile_obj = msgdict.get("profile")
+                force = msgdict.get("force", False)
                 if profile_obj:
-                    #del msgdict["cmd"]
+                    # del msgdict["cmd"]
                     if save_profile(profile_obj, force):
                         msgdict["resp"] = "OK"
                     else:
                         msgdict["resp"] = "FAIL"
-                    
+
                     log.debug("websocket (storage) sent: %s" % message)
                     wsock.send(json.dumps(msgdict))
                     wsock.send(get_profiles())
@@ -134,7 +138,7 @@ def handle_storage():
     log.info("websocket (storage) closed")
 
 
-@app.route('/config')
+@app.route("/config")
 def handle_config():
     wsock = get_websocket_from_request()
     log.info("websocket (config) opened")
@@ -147,7 +151,7 @@ def handle_config():
     log.info("websocket (config) closed")
 
 
-@app.route('/status')
+@app.route("/status")
 def handle_status():
     wsock = get_websocket_from_request()
     ovenWatcher.add_observer(wsock)
@@ -167,30 +171,31 @@ def get_profiles():
     except:
         profile_files = []
     profiles = []
-    #Filter to only using json files
+    # Filter to only using json files
     profile_files = [fi for fi in profile_files if fi.endswith(".json")]
     for filename in profile_files:
-        with open(os.path.join(profile_path, filename), 'r') as f:
+        with open(os.path.join(profile_path, filename), "r") as f:
             profiles.append(json.load(f))
     return json.dumps(profiles)
 
 
 def save_profile(profile, force=False):
     profile_json = json.dumps(profile)
-    filename = profile['name']+".json"
+    filename = profile["name"] + ".json"
     filepath = os.path.join(profile_path, filename)
     if not force and os.path.exists(filepath):
         log.error("Could not write, %s already exists" % filepath)
         return False
-    with open(filepath, 'w+') as f:
+    with open(filepath, "w+") as f:
         f.write(profile_json)
         f.close()
     log.info("Wrote %s" % filepath)
     return True
 
+
 def delete_profile(profile):
     profile_json = json.dumps(profile)
-    filename = profile['name']+".json"
+    filename = profile["name"] + ".json"
     filepath = os.path.join(profile_path, filename)
     os.remove(filepath)
     log.info("Deleted %s" % filepath)
@@ -198,11 +203,15 @@ def delete_profile(profile):
 
 
 def get_config():
-    return json.dumps({"temp_scale": config.temp_scale,
-        "time_scale_slope": config.time_scale_slope,
-        "time_scale_profile": config.time_scale_profile,
-        "kwh_rate": config.kwh_rate,
-        "currency_type": config.currency_type})    
+    return json.dumps(
+        {
+            "temp_scale": config.temp_scale,
+            "time_scale_slope": config.time_scale_slope,
+            "time_scale_profile": config.time_scale_profile,
+            "kwh_rate": config.kwh_rate,
+            "currency_type": config.currency_type,
+        }
+    )
 
 
 def main():
@@ -210,8 +219,7 @@ def main():
     port = config.listening_port
     log.info("listening on %s:%d" % (ip, port))
 
-    server = WSGIServer((ip, port), app,
-                        handler_class=WebSocketHandler)
+    server = WSGIServer((ip, port), app, handler_class=WebSocketHandler)
     server.serve_forever()
 
 
