@@ -123,7 +123,7 @@ def handle_storage():
                 if delete_profile(profile_obj):
                   msgdict["resp"] = "OK"
                 wsock.send(json.dumps(msgdict))
-                print("1 " + msgdict)                                      #deneme
+                print("1 ", msgdict)                                      #deneme
                 #wsock.send(get_profiles())
             elif msgdict.get("cmd") == "PUT":
                 log.info("PUT command received")
@@ -139,7 +139,7 @@ def handle_storage():
                     log.debug("websocket (storage) sent: %s" % message)
 
                     wsock.send(json.dumps(msgdict))
-                    print("2 " + msgdict)                                  #deneme
+                    print("2 ", msgdict)                                  #deneme
                     wsock.send(get_profiles())
         except WebSocketError:
             break
