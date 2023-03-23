@@ -106,7 +106,6 @@ def handle_storage():
     while True:
         try:
             message = wsock.receive()
-            log.info(message)
             if not message:
                 break
             log.debug("websocket (storage) received: %s" % message)
@@ -130,6 +129,7 @@ def handle_storage():
                 log.info("PUT command received")
                 profile_obj = msgdict.get('profile')
                 force = msgdict.get('force', False)
+                print(force)
                 if profile_obj:
                     #del msgdict["cmd"]
                     if save_profile(profile_obj, force):
