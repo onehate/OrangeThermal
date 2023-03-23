@@ -15,12 +15,12 @@ GPIO.setwarnings(False)
 
 
 def led_blink(time_step, pid):
-    GPIO.setup(config.gpio_heat, GPIO.OUT)
     while True:
-        # logging.info("Temperature: %0.2f°C", temp.temperature())
-        print("on")
+        GPIO.setup(config.gpio_heat, GPIO.OUT)
         GPIO.output(config.gpio_heat, GPIO.HIGH)
+        print("on")
         time.sleep(time_step * pid)
+        GPIO.setup(config.gpio_heat, GPIO.OUT)
         GPIO.output(config.gpio_heat, GPIO.LOW)
         print("off")
         time.sleep(1)
