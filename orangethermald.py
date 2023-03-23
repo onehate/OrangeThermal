@@ -112,6 +112,7 @@ def handle_storage():
 
             try:
                 msgdict = json.loads(message)
+                print(msgdict)
             except:
                 msgdict = {}
 
@@ -128,8 +129,7 @@ def handle_storage():
             elif msgdict.get("cmd") == "PUT":
                 log.info("PUT command received")
                 profile_obj = msgdict.get('profile')
-                #force = msgdict.get('force', False)
-                force = True
+                force = msgdict.get('force', False)
                 print(force)
                 if profile_obj:
                     #del msgdict["cmd"]
