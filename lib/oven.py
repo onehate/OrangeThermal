@@ -105,10 +105,6 @@ class Oven(threading.Thread):
     def run(self):
         # from led_controller import led_blink
 
-        GPIO.setboard(GPIO.H616)
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setwarnings(False)
-
         # GPIO.setup(config.gpio_heat, GPIO.OUT)
 
         if config.cool_enabled:
@@ -129,6 +125,9 @@ class Oven(threading.Thread):
         pid = 0
 
         while True:
+            GPIO.setboard(GPIO.H616)
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setwarnings(False)
             # print(f"temp_count = {temperature_count}")
             # print(f"last temp and sensor temp: {last_temp}, {self.temp_sensor.temperature}")
             now = datetime.datetime.now()
