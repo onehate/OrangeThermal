@@ -44,8 +44,8 @@ class Oven(threading.Thread):
         self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
         self.start()
+        self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
         self.heat = 0
-        self.target = 0
         self.reset()
 
     def reset(self):
@@ -61,7 +61,6 @@ class Oven(threading.Thread):
         self.set_heat(False)
         self.set_cool(False)
         self.set_air(False)
-        self.pid = PID(ki=config.pid_ki, kd=config.pid_kd, kp=config.pid_kp)
         self.pid.reset()
 
     def run_profile(self, profile, resume=False):
@@ -97,7 +96,7 @@ class Oven(threading.Thread):
         self.state = Oven.STATE_TUNING
         self.start_time = datetime.datetime.now()
         self.heatOn = True
-        self.heat = 0.0 
+        self.heat = 1.0 
         self.bias = 0.4
         self.tunecycles = n_cycles
         self.d = 0.4
