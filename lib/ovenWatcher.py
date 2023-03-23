@@ -4,14 +4,6 @@ import config
 
 log = logging.getLogger(__name__)
 
-import OPi.GPIO as GPIO
-
-GPIO.setboard(GPIO.H616)
-GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
-
-GPIO.setup(config.gpio_heat, GPIO.OUT)
-
 
 class OvenWatcher(threading.Thread):
     def __init__(self, oven):
