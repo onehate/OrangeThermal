@@ -186,7 +186,7 @@ def get_profiles():
     return json.dumps(profiles)
 
 
-def save_profile(profile, force=True):
+def save_profile(profile, force=False):
     profile_json = json.dumps(profile)
     filename = profile['name']+".json"
     filepath = os.path.join(profile_path, filename)
