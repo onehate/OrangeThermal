@@ -122,15 +122,15 @@ class Oven(threading.Thread):
             now = datetime.datetime.now()
 
             # Log Data:
-            # with open("log_{0}.csv".format(now.strftime("%Y-%m-%d")), "a") as filelog:
-            #     filelog.write(
-            #         "{0},{1:.2f},{2:.1f},{3:.1f}\n".format(
-            #             now.strftime("%Y-%m-%d,%H:%M:%S"),
-            #             self.temp_sensor.temperature,
-            #             self.target,
-            #             self.heat,
-            #         )
-            #     )
+            with open("log_{0}.csv".format(now.strftime("%Y-%m-%d")), "a") as filelog:
+                filelog.write(
+                    "{0},{1:.2f},{2:.1f},{3:.1f}\n".format(
+                        now.strftime("%Y-%m-%d,%H:%M:%S"),
+                        self.temp_sensor.temperature,
+                        self.target,
+                        self.heat,
+                    )
+                )
 
             self.door = self.get_door_state()
             # print(f"state and heatOn:{self.state}, {self.heatOn}")
