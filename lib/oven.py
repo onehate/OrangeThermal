@@ -297,7 +297,7 @@ class Oven(threading.Thread):
                 self.heat = 0
 
             if self.heat > 0:
-                self.set_heat(1)
+                self.set_heat(self.heat)
                 #time.sleep(self.time_step * (1 - pid))
             else:
                 self.set_heat(0)
