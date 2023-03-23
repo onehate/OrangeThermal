@@ -4,7 +4,6 @@ import os
 import sys
 import logging
 import json
-
 import bottle
 import gevent
 import geventwebsocket
@@ -12,6 +11,7 @@ from geventwebsocket import WebSocketError
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
+from max31865 import MAX31865
 
 try:
     sys.dont_write_bytecode = True
@@ -86,6 +86,7 @@ def handle_control():
                 oven.run_tuning()
                 ovenWatcher.record()
         except WebSocketError:
+            GPIO.cleanup()
             log.info("Web socket error!")
             break
     log.info("websocket (control) closed")
