@@ -121,26 +121,25 @@ def handle_storage():
                 log.info("DELETE command received")
                 profile_obj = msgdict.get('profile')
                 if delete_profile(profile_obj):
-                  msgdict["resp"] = "OK"
+                    msgdict["resp"] = "OK"
                 wsock.send(json.dumps(msgdict))
-                print("1 ", msgdict)                                      #deneme
                 #wsock.send(get_profiles())
             elif msgdict.get("cmd") == "PUT":
                 log.info("PUT command received")
                 profile_obj = msgdict.get('profile')
                 force = msgdict.get('force', False)
-                #print(force)
+                print(msgdict)
                 if profile_obj:
                     #del msgdict["cmd"]
                     if save_profile(profile_obj, force):
                         msgdict["resp"] = "OK"
                     else:
                         msgdict["resp"] = "FAIL"
+                    
                     log.debug("websocket (storage) sent: %s" % message)
-
                     wsock.send(json.dumps(msgdict))
-                    print("2 ", msgdict)                                  #deneme
                     wsock.send(get_profiles())
+
         except WebSocketError:
             break
     log.info("websocket (storage) closed")
