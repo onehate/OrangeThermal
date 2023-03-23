@@ -21,6 +21,12 @@ class OvenWatcher(threading.Thread):
 
     def run(self):
         while True:
+            GPIO.setboard(GPIO.H616)
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setwarnings(False)
+
+            GPIO.setup(config.gpio_heat, GPIO.OUT)
+
             oven_state = self.oven.get_state()
             # print(oven_state)
             if (
