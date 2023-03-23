@@ -100,7 +100,7 @@ def handle_storage():
             log.debug("websocket (storage) received: %s" % message)
             try:
                 msgdict = json.loads(message)
-                msgdict["force"] = True                            # To enable the overwrite of profiles 
+                #msgdict["force"] = True                            # To enable forced overwrite of profiles 
             except:
                 msgdict = {}
 
