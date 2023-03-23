@@ -265,6 +265,8 @@ class Oven (threading.Thread):
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 print("on")
+                print(self.time_step)
+                print(value)
                 time.sleep(self.time_step * value)
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
