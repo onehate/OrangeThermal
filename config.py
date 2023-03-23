@@ -46,9 +46,6 @@ gpio_sensor_miso = 21
 gpio_sensor_mosi = 19
 gpio_sensor_clock = 23
 
-### Thermocouple SPI Connection (using adafrut drivers + kernel SPI interface)
-spi_sensor_chip_id = 0
-
 ### amount of time, in seconds, to wait between reads of the thermocouple
 # This is also the rate of the control loop?
 sensor_read_period = 1
