@@ -333,7 +333,7 @@ class Oven(threading.Thread):
                 print("on")
                 time.sleep(self.time_step * value)
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
-                GPIO.output(config.gpio_heat, GPIO.LOW)
+                # GPIO.output(config.gpio_heat, GPIO.LOW)
                 print("off")
                 # led_blink(self.time_step, value)
 
