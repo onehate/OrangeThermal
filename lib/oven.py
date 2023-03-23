@@ -243,9 +243,9 @@ class Oven (threading.Thread):
                     self.heat = 0
 
             if self.heat > 0:
-                # if pid > 1:                     #REMOVE THESE AFTER GPIO FIX?
-                #     time.sleep(self.time_step)  #----------------------------
-                # else:                           #----------------------------
+                if pid > 1:                     #REMOVE THESE AFTER GPIO FIX?
+                    time.sleep(self.time_step)  #----------------------------
+                else:                           #----------------------------
                 time.sleep(self.time_step * (1 - pid))
             else:
                 time.sleep(self.time_step)
@@ -265,8 +265,6 @@ class Oven (threading.Thread):
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 print("on")
-                print(self.time_step)
-                print(value)
                 time.sleep(self.time_step * value)
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
