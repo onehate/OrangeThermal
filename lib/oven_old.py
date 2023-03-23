@@ -276,7 +276,7 @@ class Oven(threading.Thread):
                 # Capture the last temperature value.  This must be done before set_heat, since there is a sleep in there now.
                 last_temp = self.temp_sensor.temperature
 
-                self.heat = pid
+                self.set_heat(pid)
 
                 # if self.profile.is_rising(self.runtime):
                 #    self.set_cool(False)
@@ -293,16 +293,13 @@ class Oven(threading.Thread):
                 if self.runtime >= self.totaltime:
                     self.reset()
                     continue
-            else:  # Not tuning or running - make sure oven is off
-                self.heat = 0
+                else:  # Not tuning or running - make sure oven is off
+                    self.heat = 0
 
             if self.heat > 0:
-                set_heat = 1
-                #time.sleep(self.time_step * (1 - pid))
+                time.sleep(self.time_step * (1 - pid))
             else:
-                set_heat = 0
-            
-            time.sleep(self.time_step)
+                time.sleep(self.time_step)
 
     def set_heat(self, value):
         if value > 0:
