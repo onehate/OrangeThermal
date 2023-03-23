@@ -101,8 +101,8 @@ class Oven(threading.Thread):
         self.target = temp_target
         self.totaltime = (n_cycles * 100)  # Just an estimate; no good way to fill this in
         self.cycles = 0
-        self.maxtemp = -10000
-        self.mintemp = 10000
+        self.maxtemp = 280
+        self.mintemp = 20
         self.t1 = datetime.datetime.now()  # t1 is when the temp goes over target
         self.t2 = self.t1  # t2 is when it goes under
         self.t_high = 0
