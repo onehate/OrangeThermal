@@ -14,16 +14,6 @@ from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
 
-
-import OPi.GPIO as GPIO
-
-GPIO.setboard(GPIO.H616)
-GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
-
-GPIO.setup(config.gpio_heat, GPIO.OUT)
-
-
 try:
     sys.dont_write_bytecode = True
     import config
@@ -231,7 +221,6 @@ def main():
     log.info("listening on %s:%d" % (ip, port))
 
     server = WSGIServer((ip, port), app, handler_class=WebSocketHandler)
-    print("main function called")
     server.serve_forever()
 
 
