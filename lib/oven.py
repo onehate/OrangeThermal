@@ -341,7 +341,7 @@ class Oven(threading.Thread):
                 GPIO.output(config.gpio_heat, GPIO.LOW)
                 print("off")
                 """
-                led_blink(self.time_step * value)
+                led_blink(self.time_step, value)
 
         else:
             self.heat = 0.0
