@@ -159,7 +159,7 @@ class Oven(threading.Thread):
                 if (
                     self.heatOn
                     and temp > self.target
-                    and (now - self.t2).total_seconds() > 15.0
+                    and (now - self.t2).total_seconds() > 45.0
                 ):
                     # These events occur once we swing over the temperature target
                     # debounce: prevent noise from triggering false transition
@@ -174,7 +174,7 @@ class Oven(threading.Thread):
                 if (
                     self.heatOn == False
                     and temp < self.target
-                    and (now - self.t1).total_seconds() > 15.0
+                    and (now - self.t1).total_seconds() > 45.0
                 ):
                     # This occurs when we swing below the target
                     self.heatOn = True
