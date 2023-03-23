@@ -10,11 +10,28 @@ import config
 import OPi.GPIO as GPIO
 
 from max31865 import MAX31865
-
-log = logging.getLogger(__name__)
-
 log.info("import MAX31865")
 
+GPIO.setboard(GPIO.H616)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+
+GPIO.setup(config.gpio_heat, GPIO.OUT)
+
+if config.cool_enabled:
+    GPIO.setup(config.gpio_cool, GPIO.OUT)
+else:
+    None
+if config.air_enabled:
+    GPIO.setup(config.gpio_air, GPIO.OUT)
+else:
+    None
+if config.door_enabled:
+    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+else:
+    None
+
+log = logging.getLogger(__name__)
 
 class Oven(threading.Thread):
     STATE_IDLE = "IDLE"
@@ -85,7 +102,7 @@ class Oven(threading.Thread):
         self.state = Oven.STATE_TUNING
         self.start_time = datetime.datetime.now()
         self.heatOn = True
-        self.heat = 0.8  ##Marlin starts at 50%. What happens if this isn't enough to hit the target?
+        self.heat = 1 
         self.bias = 0.4
         self.tunecycles = n_cycles
         self.d = 0.4
@@ -103,31 +120,13 @@ class Oven(threading.Thread):
         log.info("Starting")
 
     def run(self):
-        # from led_controller import led_blink
-
-        # GPIO.setup(config.gpio_heat, GPIO.OUT)
-
-        if config.cool_enabled:
-            GPIO.setup(config.gpio_cool, GPIO.OUT)
-        else:
-            None
-        if config.air_enabled:
-            GPIO.setup(config.gpio_air, GPIO.OUT)
-        else:
-            None
-        if config.door_enabled:
-            GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        else:
-            None
 
         temperature_count = 0
         last_temp = 0
         pid = 0
 
         while True:
-            GPIO.setboard(GPIO.H616)
-            GPIO.setmode(GPIO.BOARD)
-            GPIO.setwarnings(False)
+
             # print(f"temp_count = {temperature_count}")
             # print(f"last temp and sensor temp: {last_temp}, {self.temp_sensor.temperature}")
             now = datetime.datetime.now()

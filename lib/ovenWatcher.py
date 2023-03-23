@@ -1,7 +1,5 @@
 import threading, logging, json, time, datetime
 from oven import Oven
-import config
-import OPi.GPIO as GPIO
 
 log = logging.getLogger(__name__)
 
@@ -22,14 +20,8 @@ class OvenWatcher(threading.Thread):
 
     def run(self):
         while True:
-            GPIO.setboard(GPIO.H616)
-            GPIO.setmode(GPIO.BOARD)
-            GPIO.setwarnings(False)
-
-            GPIO.setup(config.gpio_heat, GPIO.OUT)
-
             oven_state = self.oven.get_state()
-            # print(oven_state)
+            print(oven_state)
             if (
                 oven_state.get("state") == Oven.STATE_RUNNING
                 or oven_state.get("state") == Oven.STATE_TUNING
