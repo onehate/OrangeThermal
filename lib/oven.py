@@ -246,7 +246,7 @@ class Oven (threading.Thread):
                 if pid > 1:                     #REMOVE THESE AFTER GPIO FIX?
                     time.sleep(self.time_step)  #----------------------------
                 else:                           #----------------------------
-                time.sleep(self.time_step * (1 - pid))
+                    time.sleep(self.time_step * (1 - pid))
             else:
                 time.sleep(self.time_step)
 
