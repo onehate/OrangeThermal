@@ -109,10 +109,9 @@ def handle_storage():
             if not message:
                 break
             log.debug("websocket (storage) received: %s" % message)
-
             try:
                 msgdict = json.loads(message)
-                print(msgdict)
+                #print(msgdict)
             except:
                 msgdict = {}
 
@@ -192,7 +191,6 @@ def save_profile(profile, force=False):
     filename = profile['name']+".json"
     filepath = os.path.join(profile_path, filename)
     if not force and os.path.exists(filepath):
-        print(force)
         log.error("Could not write, %s already exists" % filepath)
         return False
     with open(filepath, 'w+') as f:
