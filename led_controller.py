@@ -13,10 +13,9 @@ GPIO.setboard(GPIO.H616)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
-GPIO.setup(config.gpio_heat, GPIO.OUT)
-
 
 def led_blink(time_step, pid):
+    GPIO.setup(config.gpio_heat, GPIO.OUT)
     while True:
         # logging.info("Temperature: %0.2f°C", temp.temperature())
         print("on")
