@@ -194,9 +194,9 @@ class MAX31865(object):
         self._setup_GPIO()
         return self
 
-    def __exit__(self, *k):
+    #def __exit__(self, *k):
         #GPIO.cleanup()
-
+         
     def write_register(self, register, data):
         """
         Write data to register.
