@@ -332,7 +332,6 @@ class Oven(threading.Thread):
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 print("inverted-on")
             else:
-                """
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 print("on")
@@ -340,8 +339,7 @@ class Oven(threading.Thread):
                 GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
                 print("off")
-                """
-                led_blink(self.time_step, value)
+                # led_blink(self.time_step, value)
 
         else:
             self.heat = 0.0

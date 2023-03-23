@@ -23,4 +23,4 @@ def led_blink(time_step, pid):
         GPIO.setup(config.gpio_heat, GPIO.OUT)
         GPIO.output(config.gpio_heat, GPIO.LOW)
         print("off")
-        time.sleep(1)
+        # time.sleep(1)

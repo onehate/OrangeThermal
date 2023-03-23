@@ -1,6 +1,7 @@
 import threading, logging, json, time, datetime
 from oven import Oven
 import config
+import OPi.GPIO as GPIO
 
 log = logging.getLogger(__name__)
 
