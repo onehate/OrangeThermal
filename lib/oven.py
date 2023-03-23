@@ -165,7 +165,7 @@ class Oven(threading.Thread):
                     # debounce: prevent noise from triggering false transition
                     ##This might need to be longer for large systems
                     self.heatOn = False
-                    self.heat = self.bias - self.d
+                    self.heat = (self.bias - self.d)
                     self.t1 = now
                     self.t_high = (self.t1 - self.t2).total_seconds()
                     self.maxtemp = temp
@@ -198,13 +198,13 @@ class Oven(threading.Thread):
                         Ku = (4.0 * self.d) / (
                             math.pi * (self.maxtemp - self.mintemp) / 2
                         )
-                        Tu = self.t_low + self.t_high
+                        Tu = (self.t_low + self.t_high)
                         log.info("Ku: %.6f, Tu: %.6f", Ku, Tu)
                         Kp = 0.6 * Ku
                         Ki = 2 * Kp / Tu
                         Kd = Kp * Tu / 8
                         log.info("Kp: %.8f, Ki: %.8f, Kd = %.8f", Kp, Ki, Kd)
-                    self.heat = self.bias + self.d
+                    self.heat = (self.bias + self.d)
                     self.cycles = self.cycles + 1
                     log.info(
                         "Under Target, new values: d: %.2f, bias: %.2f, t_low: %.0f, t_high: %.0f, MaxT: %.0f, MinT: %.0f",
@@ -254,7 +254,7 @@ class Oven(threading.Thread):
 
                 self.set_cool(pid <= -1)
 
-                if pid > 0:
+                if (pid > 0):
                     # The temp should be changing with the heat on
                     # Count the number of time_steps encountered with no change and the heat on
                     if last_temp == self.temp_sensor.temperature:
@@ -269,7 +269,7 @@ class Oven(threading.Thread):
                             "Error reading sensor, oven temp not responding to heat."
                         )
                         self.reset()
-                        # continue
+                        continue
                 else:
                     temperature_count = 0
 
@@ -297,10 +297,10 @@ class Oven(threading.Thread):
                 self.heat = 0
 
             if self.heat > 0:
-                set_heat = 1.0
+                set_heat(1)
                 #time.sleep(self.time_step * (1 - pid))
             else:
-                set_heat = 0.0
+                set_heat(0)
             
             time.sleep(self.time_step)
 
