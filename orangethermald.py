@@ -4,7 +4,6 @@ import os
 import sys
 import logging
 import json
-import config
 
 import bottle
 import gevent
@@ -17,7 +16,6 @@ from geventwebsocket import WebSocketError
 try:
     sys.dont_write_bytecode = True
     import config
-
     sys.dont_write_bytecode = False
 except:
     print("Could not import config file.")

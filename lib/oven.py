@@ -5,13 +5,12 @@ import datetime
 import logging
 import json
 import math
-
 import config
-import OPi.GPIO as GPIO
 
 from max31865 import MAX31865
 log.info("import MAX31865")
 
+import OPi.GPIO as GPIO
 GPIO.setboard(GPIO.H616)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
