@@ -7,6 +7,8 @@ import json
 import math
 import config
 
+log = logging.getLogger(__name__)
+
 from max31865 import MAX31865
 log.info("import MAX31865")
 
@@ -29,8 +31,6 @@ if config.door_enabled:
     GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 else:
     None
-
-log = logging.getLogger(__name__)
 
 class Oven(threading.Thread):
     STATE_IDLE = "IDLE"
