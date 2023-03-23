@@ -189,8 +189,8 @@ def save_profile(profile, force=True):
     profile_json = json.dumps(profile)
     filename = profile['name']+".json"
     filepath = os.path.join(profile_path, filename)
-    if force == False and os.path.exists(filepath):
-        print(force)
+    if save_profile.force == False and os.path.exists(filepath):
+        print(save_profile.force)
         log.error("Could not write, %s already exists" % filepath)
         return False
     with open(filepath, 'w+') as f:
