@@ -69,14 +69,12 @@ class Oven(threading.Thread):
         self.totaltime = profile.get_duration()
         self.state = Oven.STATE_RUNNING
         self.start_time = datetime.datetime.now()
-
         if resume:
             progress = self.profile.findTemp(self.temp_sensor.temperature)
             self.start_time = datetime.datetime.now() - progress
             log.info("Skipping ahead to %s", str(progress))
         else:
             self.start_time = datetime.datetime.now()
-
         self.state = Oven.STATE_RUNNING
         self.pid.reset()
         log.info("Starting")
@@ -129,7 +127,7 @@ class Oven(threading.Thread):
                     "{0},{1:.2f},{2:.1f},{3:.1f}\n".format(
                         now.strftime("%Y-%m-%d,%H:%M:%S"),
                         self.temp_sensor.temperature,
-                        self.target,
+                        #self.target,
                         self.heat,
                     )
                 )
