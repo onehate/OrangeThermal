@@ -7,38 +7,13 @@ import json
 import math
 
 import config
-
-
-log = logging.getLogger(__name__)
-
+import OPi.GPIO as GPIO
 
 from max31865 import MAX31865
 
+log = logging.getLogger(__name__)
+
 log.info("import MAX31865")
-
-
-import OPi.GPIO as GPIO
-
-from led_controller import led_blink
-
-GPIO.setboard(GPIO.H616)
-GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
-
-GPIO.setup(config.gpio_heat, GPIO.OUT)
-
-if config.cool_enabled:
-    GPIO.setup(config.gpio_cool, GPIO.OUT)
-else:
-    None
-if config.air_enabled:
-    GPIO.setup(config.gpio_air, GPIO.OUT)
-else:
-    None
-if config.door_enabled:
-    GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-else:
-    None
 
 
 class Oven(threading.Thread):
@@ -128,6 +103,27 @@ class Oven(threading.Thread):
         log.info("Starting")
 
     def run(self):
+        # from led_controller import led_blink
+
+        GPIO.setboard(GPIO.H616)
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
+
+        GPIO.setup(config.gpio_heat, GPIO.OUT)
+
+        if config.cool_enabled:
+            GPIO.setup(config.gpio_cool, GPIO.OUT)
+        else:
+            None
+        if config.air_enabled:
+            GPIO.setup(config.gpio_air, GPIO.OUT)
+        else:
+            None
+        if config.door_enabled:
+            GPIO.setup(config.gpio_door, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        else:
+            None
+
         temperature_count = 0
         last_temp = 0
         pid = 0
