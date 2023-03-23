@@ -129,7 +129,7 @@ def handle_storage():
                 log.info("PUT command received")
                 profile_obj = msgdict.get('profile')
                 force = msgdict.get('force', False)
-                print(force)
+                #print(force)
                 if profile_obj:
                     #del msgdict["cmd"]
                     if save_profile(profile_obj, force):
@@ -186,7 +186,7 @@ def get_profiles():
     return json.dumps(profiles)
 
 
-def save_profile(profile, force=False):
+def save_profile(profile, force=True):
     profile_json = json.dumps(profile)
     filename = profile['name']+".json"
     filepath = os.path.join(profile_path, filename)
