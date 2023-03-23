@@ -35,7 +35,9 @@ def main():
             logging.info("Temperature: %0.2f°C", temp.temperature())
             GPIO.output(config.gpio_heat, GPIO.HIGH)
             time.sleep(3)
-            GPIO.output(config.gpio_heat, GPIO.LOW)
+            GPIO.setboard(GPIO.H616)
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setwarnings(False)
             time.sleep(1)
 
 

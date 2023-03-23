@@ -109,7 +109,7 @@ class Oven(threading.Thread):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
 
-        GPIO.setup(config.gpio_heat, GPIO.OUT)
+        # GPIO.setup(config.gpio_heat, GPIO.OUT)
 
         if config.cool_enabled:
             GPIO.setup(config.gpio_cool, GPIO.OUT)
