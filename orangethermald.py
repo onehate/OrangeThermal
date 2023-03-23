@@ -111,6 +111,7 @@ def handle_storage():
             log.debug("websocket (storage) received: %s" % message)
             try:
                 msgdict = json.loads(message)
+                msgdict["force"] = True
             except:
                 msgdict = {}
 
