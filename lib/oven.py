@@ -97,7 +97,7 @@ class Oven(threading.Thread):
         self.state = Oven.STATE_TUNING
         self.start_time = datetime.datetime.now()
         self.heatOn = True
-        self.heat = 1.0 
+        self.heat = 0.0 
         self.bias = 0.4
         self.tunecycles = n_cycles
         self.d = 0.4
