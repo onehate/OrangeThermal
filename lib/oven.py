@@ -43,8 +43,6 @@ class Oven(threading.Thread):
         self.time_step = time_step
         self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
-        # self.PWM = PWM(config.PWM_Period_s, config.PWM_MinimumOnOff_s, config.PWM_PeriodMax_s)
-        # self.PWM.start()
         self.start()
         self.heat = 0
         self.target = 0
@@ -60,8 +58,6 @@ class Oven(threading.Thread):
         self.heat = 0
         self.door = self.get_door_state()
         self.state = Oven.STATE_IDLE
-        # self.PWM.setHeat1(0)
-        # self.PWM.setHeat2(0)
         self.set_heat(False)
         self.set_cool(False)
         self.set_air(False)
@@ -106,9 +102,7 @@ class Oven(threading.Thread):
         self.tunecycles = n_cycles
         self.d = 0.4
         self.target = temp_target
-        self.totaltime = (
-            n_cycles * 1000
-        )  # Just an estimate; no good way to fill this in
+        self.totaltime = (n_cycles * 100)  # Just an estimate; no good way to fill this in
         self.cycles = 0
         self.maxtemp = -10000
         self.mintemp = 10000
@@ -306,9 +300,6 @@ class Oven(threading.Thread):
                     self.heat = 0
 
             if self.heat > 0:
-                # if pid > 1:                     #REMOVE THESE AFTER GPIO FIX?
-                #    time.sleep(self.time_step)  #----------------------------
-                # else:                           #----------------------------
                 time.sleep(self.time_step * (1 - pid))
             else:
                 time.sleep(self.time_step)
@@ -317,59 +308,39 @@ class Oven(threading.Thread):
         if value > 0:
             self.heat = 1.0
             if config.heater_invert:
-                #GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
-                print("inverted-off")
                 time.sleep(self.time_step * value)
-                #GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
-                print("inverted-on")
             else:
-                #GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
-                print("on")
                 time.sleep(self.time_step * value)
-                #GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
-                print("off")
         else:
             self.heat = 0.0
             if config.heater_invert:
-                #GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
-                print("else-on")
             else:
-                #GPIO.setup(config.gpio_heat, GPIO.OUT)
                 GPIO.output(config.gpio_heat, GPIO.LOW)
-                print("else-off")
 
     def set_cool(self, value):
         if value:
             self.cool = 1.0
             if config.cool_enabled:
-                #GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.LOW)
-                print("cool-off")
         else:
             self.cool = 0.0
             if config.cool_enabled:
-                #GPIO.setup(config.gpio_cool, GPIO.OUT)
                 GPIO.output(config.gpio_cool, GPIO.HIGH)
-                print("cool-on")
 
     def set_air(self, value):
         if value:
             self.air = 1.0
             if config.air_enabled:
-                #GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.LOW)
-                print("air-off")
         else:
             self.air = 0.0
             if config.air_enabled:
-                #GPIO.setup(config.gpio_air, GPIO.OUT)
                 GPIO.output(config.gpio_air, GPIO.HIGH)
-                print("air-on")
 
     def get_state(self):
         state = {
@@ -387,7 +358,6 @@ class Oven(threading.Thread):
 
     def get_door_state(self):
         if config.door_enabled:
-            #GPIO.setup(config.gpio_door, GPIO.IN)
             return "OPEN" if GPIO.input(config.gpio_door) else "CLOSED"
         else:
             return "UNKNOWN"
@@ -417,7 +387,6 @@ class TempSensorReal(TempSensor):
             ) as temp:
                 self.thermistor = temp.temperature()
             try:
-                # print(self.thermistor)
                 self.temperature = self.thermistor
                 lasttemp = self.temperature
             except Exception:
