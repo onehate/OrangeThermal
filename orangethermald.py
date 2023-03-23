@@ -11,7 +11,7 @@ from geventwebsocket import WebSocketError
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
-from max31865 import MAX31865
+from lib.max31865 import MAX31865
 
 try:
     sys.dont_write_bytecode = True
