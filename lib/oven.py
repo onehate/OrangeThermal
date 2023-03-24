@@ -40,7 +40,7 @@ class Oven(threading.Thread):
     def __init__(self, time_step=config.sensor_read_period):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.time_step = time_step * 4
+        self.time_step = time_step
         self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
         self.start()
@@ -314,7 +314,7 @@ class Oven(threading.Thread):
             else:
                 GPIO.output(config.gpio_heat, GPIO.HIGH)
                 time.sleep(self.time_step * value)
-                GPIO.output(config.gpio_heat, GPIO.LOW)
+                #GPIO.output(config.gpio_heat, GPIO.LOW)
         else:
             self.heat = 0.0
             if config.heater_invert:
