@@ -48,7 +48,7 @@ gpio_sensor_clock = 23
 
 ### amount of time, in seconds, to wait between reads of the thermocouple
 # This is also the rate of the control loop?
-sensor_read_period = 1
+sensor_read_period = 0.5
 
 ### Profile Adjustments for Kilns
 # must_hit_temp adjusts for systems where the heater might not be able to keep up with the profile
