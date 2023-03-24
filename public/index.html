@@ -29,7 +29,7 @@
    <div class="ds-title-panel">
     <div class="ds-title">Sensor Temp</div>
     <div class="ds-title">Target Temp</div>
-    <!--<div class="ds-title">Heat Level</div>-->
+    <div class="display ds-num ds-text" id="state"></div>
     <div class="ds-title ds-state pull-right" style="border-left: 1px solid #ccc;">Status</div>
    </div>
    <div class="clearfix"></div>
@@ -56,7 +56,6 @@
      <button id="btn_edit" type="button" class="btn btn-default" onclick="enterEditMode()"><span class="glyphicon glyphicon-edit"></span></button>
      <button id="btn_new" type="button" class="btn btn-default" onclick="enterNewMode(selected_profile)"><span class="glyphicon glyphicon-plus"></span></button>
      <button id="nav_tune" type="button" class="btn btn-default" onclick="runTuning()" ><span class="glyphicon glyphicon-play"></span> TUNE</button>
-     <div class="display ds-num ds-text" id="state"></div>
     </div>
    <div id="btn_controls" class="pull-right" style="margin-top: 3px">
     <div id="nav_start" class="btn-group" style="display:none">
