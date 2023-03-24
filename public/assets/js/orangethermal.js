@@ -277,7 +277,7 @@ function runTuning()
 		"cmd": "TUNE"
 	}
 	graph.live.data = [];
-	// graph.target.data = [];
+	graph.target.data = [];
     graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 	ws_control.send(JSON.stringify(cmd));
 }
@@ -611,13 +611,30 @@ $(document).ready(function()
                     }
                 }
 
-                if(state=="RUNNING" || state == "TUNING")
+                if(state=="RUNNING")
                 {
                     $("#nav_start").hide();
                     $("#nav_stop").show();
 
                     graph.live.data.push([adjruntime, x.temperature]);
                     graph.target.data.push([adjruntime, x.target]);
+                    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
+
+                    left = parseInt(x.totaltime-x.runtime);
+                    eta = new Date(left * 1000).toISOString().substr(11, 8);
+
+                    updateProgress(parseFloat(x.runtime)/parseFloat(x.totaltime)*100);
+                    $('#state').html('<span class="glyphicon glyphicon-time" style="font-size: 22px; font-weight: normal"></span><span style="font-family: Digi; font-size: 40px;">' + eta + '</span>');
+                    $('#target_temp').html(parseInt(x.target));
+                    $('#heat_level').html(parseInt(x.heat * 100));
+                }
+                if(state == "TUNING")
+                {
+                    $("#nav_start").hide();
+                    $("#nav_stop").show();
+
+                    graph.live.data.push([adjruntime, x.temperature]);
+                    // graph.target.data.push([adjruntime, x.target]);
                     graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
                     left = parseInt(x.totaltime-x.runtime);
