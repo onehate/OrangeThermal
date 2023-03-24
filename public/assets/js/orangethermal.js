@@ -13,7 +13,7 @@ var time_scale_long = "Seconds";
 var temp_scale_display = "C";
 var kwh_rate = 0.26;
 var currency_type = "EUR";
-var oven_power = 3850;              //average power consumption of oven in watts
+var oven_power = 2000;              //average power consumption of oven in watts
 
 var host = "ws://" + window.location.hostname + ":" + window.location.port;
 var ws_status = new WebSocket(host+"/status");
@@ -277,26 +277,26 @@ function runTuning()
 		"cmd": "TUNE"
 	}
 	graph.live.data = [];
-	graph.target.data = [];
+	// graph.target.data = [];
     graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 	ws_control.send(JSON.stringify(cmd));
 }
 
-function runTaskSimulation()
-{
-    var cmd =
-    {
-        "cmd": "SIMULATE",
-        "profile": profiles[selected_profile]
-    }
+// function runTaskSimulation()
+// {
+//     var cmd =
+//     {
+//         "cmd": "SIMULATE",
+//         "profile": profiles[selected_profile]
+//     }
 
-    graph.live.data = [];
-    graph.target.data = [];
-    graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
+//     graph.live.data = [];
+//     graph.target.data = [];
+//     graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
-    ws_control.send(JSON.stringify(cmd));
+//     ws_control.send(JSON.stringify(cmd));
 
-}
+// }
 
 
 function abortTask()
