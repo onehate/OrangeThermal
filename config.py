@@ -65,10 +65,10 @@ must_hit_temp = False
 cone_slope_adj = 0.4
 
 #the number of cycles the PID autone will complete before setting PID
-tune_cycles = 3
+tune_cycles = 5
 
 #the temperature the autotune will use for calculation of PID
-tune_target_temp = 150
+tune_target_temp = 100
 
 ########################################################################
 #
