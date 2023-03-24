@@ -99,7 +99,7 @@ class Oven(threading.Thread):
         self.tunecycles = n_cycles
         self.d = 0.4
         self.target = temp_target
-        self.totaltime = (n_cycles * 400)  # Just an estimate; no good way to fill this in
+        self.totaltime = (n_cycles * 200)  # Just an estimate; no good way to fill this in
         self.cycles = 0
         self.maxtemp = -10000
         self.mintemp = 10000
