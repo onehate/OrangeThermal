@@ -617,7 +617,7 @@ $(document).ready(function()
                     $("#nav_stop").show();
 
                     graph.live.data.push([adjruntime, x.temperature]);
-                    graph.target.data.push([adjruntime, x.target]);
+                    graph.target.data.push(); //[adjruntime, x.target]
                     graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
                     left = parseInt(x.totaltime-x.runtime);
@@ -634,7 +634,7 @@ $(document).ready(function()
                     $("#nav_stop").show();
 
                     graph.live.data.push([adjruntime, x.temperature]);
-                    // graph.target.data.push([adjruntime, x.target]);
+                    graph.target.data.push([adjruntime, x.target]);
                     graph.plot = $.plot("#graph_container", [ graph.profile, graph.target, graph.live ] , getOptions());
 
                     left = parseInt(x.totaltime-x.runtime);
