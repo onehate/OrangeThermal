@@ -40,7 +40,7 @@ class Oven(threading.Thread):
     def __init__(self, time_step=config.sensor_read_period):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.time_step = time_step
+        self.time_step = time_step * 4
         self.temp_sensor = TempSensorReal(self.time_step)
         self.temp_sensor.start()
         self.start()
