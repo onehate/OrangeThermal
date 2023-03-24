@@ -68,7 +68,7 @@ cone_slope_adj = 0.4
 tune_cycles = 5
 
 #the temperature the autotune will use for calculation of PID
-tune_target_temp = 100
+tune_target_temp = 200
 
 ########################################################################
 #
