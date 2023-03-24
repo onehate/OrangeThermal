@@ -62,7 +62,7 @@ must_hit_temp = True
 # For instance, setting to 0.4 will reduce the target temperature by 40 deg C if the final slope is 100 deg C/hour
 # lower than the profile slope
 # Only used if must_hit_temp is True
-cone_slope_adj = 0.4
+cone_slope_adj = 0.01
 
 #the number of cycles the PID autone will complete before setting PID
 tune_cycles = 5
